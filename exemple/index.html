@@ -196,13 +196,13 @@
 
   /* Feux : têtes reconstruites (rouge en haut, vert en bas), tournées vers les voitures de leur voie ; vrai cycle rouge / vert. */
   var FEUX=null,POTEAUX=[[-17.71,-12.88],[-14.25,-10.75],[-5.44,-12.54],[-3.27,-15.73],[-3.24,-24.81],[12.66,-19.82],[16.59,-18.08]].map(function(p){return B3(p[0],p[1])});
-  function setupFeux(root){root.traverse(function(o){if(o.isMesh&&o.material&&(/^Feu rouge/.test(o.material.name)||/^Tete feu\./.test(o.material.name)))o.visible=false});
+  function setupFeux(root){root.traverse(function(o){if(o.isMesh&&o.material&&(/^Feu rouge/.test(o.material.name)||/^Tete feu\./.test(o.material.name))){o.material.visible=false;o.scale.set(0,0,0)}});
     var ST=[];VOIES.forEach(function(vo){vo.stops.forEach(function(st){var p=vo.a.clone().addScaledVector(vo.d,st);ST.push({x:p.x,z:p.z,ph:vo.ph,d:vo.d})})});
-    var mT=new THREE.MeshStandardMaterial({color:0x1d1f22,roughness:.6,metalness:.2}),gT=new THREE.BoxGeometry(.28,.78,.24),gL=new THREE.CircleGeometry(.085,20),gV=new THREE.CylinderGeometry(.1,.1,.06,16,1,true,0,Math.PI);
+    var mT=new THREE.MeshStandardMaterial({color:0x1d1f22,roughness:.6,metalness:.2}),gT=new THREE.BoxGeometry(.28,.78,.24),gL=new THREE.CircleGeometry(.1,20),gV=new THREE.CylinderGeometry(.1,.1,.06,16,1,true,0,Math.PI);
     FEUX=POTEAUX.map(function(p){var b=null,bd=1e9;ST.forEach(function(s){var d=Math.hypot(s.x-p.x,s.z-p.z);if(d<bd){bd=d;b=s}});
       var g=new THREE.Group();g.position.set(p.x,0,p.z);g.rotation.y=Math.atan2(-b.d.x,-b.d.z);
       var h=new THREE.Mesh(gT,mT);h.position.y=2.66;h.castShadow=true;g.add(h);
-      function lampe(y){var m=new THREE.Mesh(gL,new THREE.MeshBasicMaterial({color:0x222222}));m.position.set(0,y,.122);g.add(m);var v=new THREE.Mesh(gV,mT);v.rotation.set(Math.PI/2,0,Math.PI/2);v.position.set(0,y+.09,.15);v.scale.set(1,1,1);g.add(v);return m}
+      function lampe(y){var m=new THREE.Mesh(gL,new THREE.MeshBasicMaterial({color:0x222222}));m.position.set(0,y,.122);g.add(m);var bk=new THREE.Mesh(gL,m.material);bk.position.set(0,y,-.122);bk.rotation.y=Math.PI;bk.scale.setScalar(.95);g.add(bk);var v=new THREE.Mesh(gV,mT);v.rotation.set(Math.PI/2,0,Math.PI/2);v.position.set(0,y+.09,.15);v.scale.set(1,1,1);g.add(v);return m}
       var r=lampe(2.9),a=lampe(2.66),v=lampe(2.42);a.material.color.set(0x2a2410);sc.add(g);return{r:r,v:v,ph:b.ph}});majFeux()}
   function majFeux(){if(!FEUX)return;FEUX.forEach(function(f){var g=feu(f.ph,horloge);f.v.material.color.set(g?0x2BE36F:0x0f2416);f.r.material.color.set(g?0x2a1010:0xFF2B2B)})}
   function trafic(dt){horloge+=dt;majFeux();VOIES.forEach(function(v){
