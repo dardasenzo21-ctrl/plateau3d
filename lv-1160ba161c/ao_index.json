@@ -1,0 +1,52 @@
+{
+ "pierre": {
+  "materiaux": [
+   "Pierre de taille"
+  ],
+  "objets": 8,
+  "res": 2048,
+  "p99": 0.2770419120788574
+ },
+ "detail": {
+  "materiaux": [
+   "Corniche",
+   "Corniche.001",
+   "Jardiniere",
+   "Sol terrasse.001",
+   "Lames plafond",
+   "Arceau",
+   "Clim",
+   "Fer forge.001",
+   "Enduit courette"
+  ],
+  "objets": 47,
+  "res": 2048,
+  "p99": 0.2534325420856476
+ },
+ "sol": {
+  "materiaux": [
+   "Trottoir",
+   "Chaussee",
+   "Chaussee.001",
+   "Bordures",
+   "Sol cour",
+   "Caniveau granit",
+   "Marquage.001",
+   "Marquage.002",
+   "Bande podotactile",
+   "Fonte voirie"
+  ],
+  "objets": 10,
+  "res": 1024,
+  "p99": 0.23245316743850708
+ },
+ "voisins": {
+  "materiaux": [
+   "Voisins",
+   "Joints zinc"
+  ],
+  "objets": 2,
+  "res": 512,
+  "p99": 0.26755478978157043
+ }
+}
