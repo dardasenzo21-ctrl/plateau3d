@@ -1,1 +1,623 @@
-<!doctype html><meta charset="utf-8"><meta http-equiv="refresh" content="0;url=exemple/"><title>Plateau 3D</title>
+<!doctype html><html lang="fr"><head><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta charset="utf-8">
+<title>Plateau 3D</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@200;300;400;500;600&display=swap">
+<style>
+/* Direction A × B : la nuit et la typographie fine de A, la maquette 3D en apesanteur et le verre dépoli de B. Un seul accent, champagne. */
+:root{
+  --bg:#0A0C13; --bg-2:#10131C; --surface:rgba(243,239,232,.035); --fg:#F3EFE8; --muted:#BDB7AC; --line:rgba(243,239,232,.1); --line-2:rgba(243,239,232,.2);
+  --accent:#E2C08D; --on-accent:#16120B; --violet:#4B37C9; --alt:rgba(243,239,232,.035); --verre:rgba(20,22,32,.5);
+  --sans:"Inter Tight","Helvetica Neue",Arial,sans-serif; --w:1280px; --r:22px; color-scheme:dark;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){ --bg:#0A0C13; --fg:#F3EFE8 } }
+:root[data-theme="dark"]{ --bg:#0A0C13; --fg:#F3EFE8 }
+*{ box-sizing:border-box }
+html{ scroll-behavior:smooth; scroll-padding-top:84px; background:var(--bg) }
+body{ margin:0; background:var(--bg); color:var(--fg); font-family:var(--sans); font-size:17px; font-weight:300; line-height:1.6; -webkit-font-smoothing:antialiased }
+.wrap{ max-width:var(--w); margin:0 auto; padding-left:max(20px,env(safe-area-inset-left,0px)); padding-right:max(20px,env(safe-area-inset-right,0px)) }
+a{ color:inherit }
+:focus-visible{ outline:2px solid var(--accent); outline-offset:3px; border-radius:8px }
+h1,h2,h3{ font-weight:200; letter-spacing:-.05em; line-height:.95; margin:0; text-wrap:balance }
+h1{ font-size:clamp(3rem,7.6vw,7rem); max-width:11ch }
+h2{ font-size:clamp(2rem,4vw,3.4rem); font-weight:300; letter-spacing:-.04em; line-height:1.02; max-width:20ch }
+h3{ font-size:1.3rem; font-weight:500; letter-spacing:-.02em; line-height:1.2 }
+strong,b{ font-weight:500 }
+p{ margin:0; max-width:58ch }
+.lead{ font-size:clamp(1.06rem,1.4vw,1.22rem); color:var(--muted); line-height:1.55 }
+.eyebrow{ display:none }
+.btn{ display:inline-flex; align-items:center; gap:10px; font-family:var(--sans); font-weight:500; font-size:1rem; padding:15px 26px; border-radius:999px; text-decoration:none; border:1px solid var(--line-2); background:transparent; color:var(--fg); cursor:pointer; transition:background .2s ease, transform .2s ease }
+.btn:hover{ background:rgba(243,239,232,.08) }
+.btn.accent{ background:var(--accent); border-color:var(--accent); color:var(--on-accent) }
+.btn.accent:hover{ background:#EBCFA4; transform:translateY(-1px) }
+.btn.ghost{ border-color:transparent; padding-inline:6px; text-decoration:underline; text-underline-offset:6px; text-decoration-color:var(--line-2) }
+.btn.ghost:hover{ background:transparent; text-decoration-color:var(--accent) }
+.btn .fl{ display:none }
+/* en-tête : une barre de verre qui flotte */
+nav.top{ position:fixed; top:calc(env(safe-area-inset-top,0px) + 14px); left:0; right:0; z-index:30; pointer-events:none }
+nav.top .wrap{ pointer-events:auto; display:flex; align-items:center; justify-content:space-between; gap:14px; height:58px; padding:0 8px 0 22px; max-width:min(1180px,calc(100% - 28px)); border-radius:999px; background:rgba(14,16,24,.55); border:1px solid var(--line); backdrop-filter:blur(18px) saturate(1.3); -webkit-backdrop-filter:blur(18px) saturate(1.3) }
+.marque{ display:flex; align-items:center; gap:10px; font-weight:500; letter-spacing:-.01em; font-size:1.05rem; text-decoration:none }
+.marque svg{ width:22px; height:22px; flex:none; color:var(--accent) }
+.onglets{ display:flex; gap:2px }
+.onglets a{ text-decoration:none; font-size:.92rem; font-weight:400; padding:8px 13px; border-radius:999px; color:var(--muted); transition:color .2s ease, background .2s ease; white-space:nowrap }
+.onglets a:hover{ color:var(--fg) }
+.onglets a[aria-current="true"]{ color:var(--fg); background:rgba(243,239,232,.08) }
+nav.top .btn{ padding:11px 18px; font-size:.92rem; background:var(--accent); border-color:var(--accent); color:var(--on-accent) }
+@media (max-width:1060px){ .onglets{ display:none } }
+/* héro : la maison en apesanteur sur un ciel de nuit */
+.hero3d{ position:relative; overflow:hidden; background:
+  radial-gradient(45% 55% at 72% 38%,rgba(75,55,201,.34) 0%,rgba(75,55,201,0) 70%),
+  radial-gradient(38% 42% at 88% 78%,rgba(226,192,141,.16) 0%,rgba(226,192,141,0) 70%),
+  radial-gradient(60% 60% at 10% 90%,rgba(32,58,110,.32) 0%,rgba(32,58,110,0) 70%),
+  linear-gradient(180deg,#07080D 0%,var(--bg) 100%) }
+.hero3d::after{ content:""; position:absolute; inset:auto 0 0; height:120px; background:linear-gradient(0deg,var(--bg),rgba(10,12,19,0)); pointer-events:none }
+.scene{ position:relative; height:max(640px,min(100svh,980px)) }
+.scene canvas{ display:block; width:100%; height:100%; touch-action:pan-y; pointer-events:auto }
+.scene:fullscreen{ height:100%; background:var(--bg) }
+.explore .scene canvas{ touch-action:none; pointer-events:auto; cursor:grab }
+.scene .charge{ position:absolute; inset:0; display:grid; place-items:center; pointer-events:none; transition:opacity .8s ease }
+.scene .charge img{ width:min(620px,60vw); margin-top:8vh; opacity:.85; filter:drop-shadow(0 40px 50px rgba(0,0,0,.5)) }
+.scene .charge span{ position:absolute; bottom:28px; font-size:.9rem; color:var(--muted) }
+.scene .charge[hidden]{ display:grid; opacity:0; visibility:hidden; transition:opacity .8s ease, visibility 0s .8s }
+.accroche{ position:absolute; inset:0; z-index:2; pointer-events:none; transition:opacity .4s ease }
+.accroche .wrap{ height:100%; display:flex; flex-direction:column; justify-content:space-between; align-items:center; text-align:center; padding-top:clamp(110px,15vh,150px); padding-bottom:clamp(28px,5vh,52px) }
+.accroche .in{ display:grid; gap:18px; justify-items:center; pointer-events:auto }
+.accroche h1{ font-size:clamp(2.8rem,5.8vw,5.6rem); max-width:15ch }
+.accroche .lead{ color:#CFC9BE; max-width:52ch; font-size:1.05rem }
+.accroche .row{ display:flex; flex-wrap:wrap; gap:14px; align-items:center; justify-content:center }
+.pastille{ display:inline-flex; align-items:center; gap:10px; font-size:.9rem; font-weight:400; padding:8px 16px 8px 12px; border-radius:999px; background:var(--verre); border:1px solid var(--line); backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px); width:max-content; max-width:100% }
+.pastille i{ width:7px; height:7px; border-radius:50%; background:var(--accent); box-shadow:0 0 0 0 rgba(226,192,141,.6); animation:pouls 2.4s infinite }
+@keyframes pouls{ to{ box-shadow:0 0 0 9px rgba(226,192,141,0) } }
+/* pastilles de verre autour de la maison */
+.verre{ position:absolute; z-index:1; display:grid; gap:2px; padding:13px 18px; border-radius:18px; background:var(--verre); border:1px solid var(--line); backdrop-filter:blur(16px) saturate(1.2); -webkit-backdrop-filter:blur(16px) saturate(1.2); font-weight:500; font-size:.95rem; pointer-events:none; box-shadow:0 30px 60px -30px rgba(0,0,0,.7); transition:opacity .4s ease; animation:flotte 8s ease-in-out infinite }
+.verre small{ font-weight:300; font-size:.84rem; color:var(--muted) }
+.verre.v1{ left:7%; top:44% } .verre.v2{ right:7%; top:38%; animation-delay:-3s } .verre.v3{ right:13%; bottom:27%; animation-delay:-5s }
+@keyframes flotte{ 50%{ transform:translateY(-8px) } }
+.explore .accroche,.explore .verre{ opacity:0; pointer-events:none } .explore .accroche .in{ pointer-events:none }
+.hud{ position:absolute; z-index:3; left:16px; right:16px; display:none; flex-wrap:wrap; gap:8px; align-items:center; justify-content:space-between; pointer-events:none }
+.explore .hud{ display:flex }
+.hud.haut{ top:88px } .hud.bas{ bottom:18px }
+.hud > *{ pointer-events:auto }
+.groupe{ display:flex; flex-wrap:wrap; gap:4px; padding:4px; border-radius:999px; background:var(--verre); border:1px solid var(--line); backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px) }
+.groupe button{ font-family:var(--sans); font-weight:400; font-size:.9rem; border:0; border-radius:999px; padding:9px 15px; background:transparent; color:var(--fg); cursor:pointer }
+.groupe button[aria-pressed="true"]{ background:var(--fg); color:var(--bg) }
+.soleil{ display:flex; align-items:center; gap:10px; padding:5px 16px 5px 5px; border-radius:999px; background:var(--verre); border:1px solid var(--line); backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px); font-size:.9rem }
+.soleil button{ width:38px; height:38px; border-radius:50%; border:0; background:var(--accent); color:var(--on-accent); font-size:.8rem; cursor:pointer }
+.soleil input{ width:min(220px,34vw); accent-color:var(--accent) }
+.soleil b{ font-weight:400; font-variant-numeric:tabular-nums; min-width:4em; text-align:right }
+.palette{ position:absolute; z-index:3; right:16px; top:150px; display:none; flex-direction:column; gap:8px; padding:14px; border-radius:18px; background:var(--verre); border:1px solid var(--line); backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px); font-size:.84rem }
+.explore .palette{ display:flex }
+.palette div{ display:flex; gap:6px }
+.palette button{ width:26px; height:26px; border-radius:50%; border:2px solid rgba(243,239,232,.25); cursor:pointer; padding:0 }
+.palette button[aria-pressed="true"]{ border-color:var(--accent); box-shadow:0 0 0 2px rgba(226,192,141,.3) }
+@media (max-width:760px){
+  .scene{ height:44svh; min-height:340px } .verre{ display:none } .explore .scene{ height:88svh }
+  .scene .charge img{ margin-left:0; width:86vw }
+  .accroche{ position:relative } .accroche .wrap{ height:auto; justify-content:flex-start; padding-block:8px 40px; gap:26px } .explore .accroche{ display:none }
+  .palette{ top:auto; bottom:128px } .hud.haut{ top:84px }
+}
+figure{ margin:0 }
+.plein{ border-radius:var(--r); overflow:hidden; background:var(--bg-2); position:relative }
+.plein img{ display:block; width:100%; height:auto; transition:transform 1s cubic-bezier(.2,.7,.2,1) }
+.plein:hover img{ transform:scale(1.025) }
+figcaption{ font-size:.92rem; color:var(--muted); padding-top:12px }
+section{ padding-block:clamp(64px,8vw,112px) }
+section.gris{ background:var(--bg-2); border-block:1px solid var(--line) }
+.tete{ display:grid; gap:16px; margin-bottom:clamp(28px,3.6vw,48px) }
+/* chiffres */
+.chiffres{ display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); border-top:1px solid var(--line); border-bottom:1px solid var(--line) }
+.chiffres div{ padding:30px 20px 30px 0; display:grid; gap:10px; align-content:start }
+.chiffres div + div{ padding-left:24px; border-left:1px solid var(--line) }
+.chiffres b{ font-size:clamp(2.4rem,4.8vw,4.2rem); font-weight:200; letter-spacing:-.05em; line-height:1; font-variant-numeric:tabular-nums }
+.chiffres span{ color:var(--muted); font-size:.95rem; line-height:1.45 }
+@media (max-width:760px){ .chiffres{ grid-template-columns:minmax(0,1fr) } .chiffres div + div{ padding-left:0; border-left:0; border-top:1px solid var(--line) } }
+/* la ligne des métiers qui utilisent le service */
+.defile{ position:relative; overflow:hidden; white-space:nowrap; padding-block:22px; border-block:1px solid var(--line); background:var(--bg-2); -webkit-mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent); mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent) }
+.defile div{ display:inline-flex; animation:defile 40s linear infinite }
+.defile span{ font-size:clamp(1.2rem,2vw,1.6rem); font-weight:200; letter-spacing:-.02em; padding-right:56px }
+.defile span::before{ content:""; display:inline-block; width:6px; height:6px; border-radius:50%; background:var(--accent); margin-right:56px; vertical-align:middle }
+@keyframes defile{ to{ transform:translateX(-50%) } }
+/* la promesse : 48 heures */
+.promesse .wrap{ display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:clamp(28px,6vw,96px); align-items:center }
+@media (max-width:900px){ .promesse .wrap{ grid-template-columns:minmax(0,1fr) } }
+.promesse .gros{ position:relative; font-weight:200; font-size:clamp(7rem,21vw,18rem); line-height:.8; letter-spacing:-.07em; color:var(--accent) }
+.promesse .gros small{ display:block; margin-top:.35em; font-size:clamp(1rem,1.4vw,1.2rem); letter-spacing:0; line-height:1.4; color:var(--muted); font-weight:300 }
+.sceau{ position:absolute; right:0; top:-46px; width:132px; height:132px }
+.sceau svg{ width:100%; height:100%; animation:tourne 22s linear infinite }
+@keyframes tourne{ to{ transform:rotate(360deg) } }
+@media (max-width:900px){ .sceau{ width:104px; height:104px } }
+.promesse .txt{ display:grid; gap:24px }
+.promesse ul{ list-style:none; margin:8px 0 0; padding:0; display:grid }
+.promesse li{ display:grid; grid-template-columns:minmax(0,9rem) minmax(0,1fr); gap:16px; padding-block:18px; border-top:1px solid var(--line) }
+.promesse li:last-child{ border-bottom:1px solid var(--line) }
+.promesse li b{ font-weight:500 } .promesse li span{ color:var(--muted) }
+@media (max-width:560px){ .promesse li{ grid-template-columns:minmax(0,1fr); gap:4px } }
+/* avant / après */
+.compare{ position:relative; max-width:100%; border-radius:var(--r); overflow:hidden; background:var(--bg-2); --p:50%; touch-action:pan-y; border:1px solid var(--line) }
+.compare.large{ aspect-ratio:16/9 } .compare.plan{ aspect-ratio:1102/1200 }
+.compare img{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; user-select:none; -webkit-user-drag:none }
+.compare .av{ clip-path:inset(0 calc(100% - var(--p)) 0 0) }
+.compare .barre{ position:absolute; top:0; bottom:0; left:var(--p); width:1px; background:var(--accent); pointer-events:none }
+.compare .barre::after{ content:"‹ ›"; position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:52px; height:52px; border-radius:50%; background:var(--accent); color:var(--on-accent); display:grid; place-items:center; font-weight:500; letter-spacing:.1em; box-shadow:0 10px 30px rgba(0,0,0,.45) }
+.compare input{ position:absolute; inset:0; width:100%; height:100%; margin:0; opacity:0; cursor:ew-resize }
+.etq{ position:absolute; top:16px; font-size:.86rem; font-weight:400; padding:8px 14px; border-radius:999px; background:rgba(10,12,19,.6); border:1px solid var(--line); color:var(--fg); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); pointer-events:none }
+.etq.g{ left:16px } .etq.d{ right:16px }
+.deux{ display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:clamp(28px,5vw,84px); align-items:center }
+@media (max-width:900px){ .deux{ grid-template-columns:minmax(0,1fr) } }
+ol.etapes{ list-style:none; margin:0; padding:0; display:grid; counter-reset:e }
+ol.etapes li{ counter-increment:e; display:grid; grid-template-columns:2.4rem minmax(0,1fr); gap:6px 18px; padding-block:26px; border-top:1px solid var(--line) }
+ol.etapes li:last-child{ border-bottom:1px solid var(--line) }
+ol.etapes li::before{ content:counter(e); font-weight:200; font-size:1.9rem; line-height:1; color:var(--accent); grid-row:span 2 }
+ol.etapes p{ color:var(--muted) }
+/* cartes : verre sombre, filet fin */
+.modes,.mesure,.formules{ display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:clamp(12px,1.6vw,20px) }
+@media (max-width:900px){ .modes,.mesure,.formules{ grid-template-columns:minmax(0,1fr) } }
+.mode,.mesure .carte,.formule{ background:var(--surface); border:1px solid var(--line); border-radius:var(--r); padding:32px; display:grid; gap:14px; align-content:start }
+.mode .n{ display:none }
+.mode p,.mesure p{ color:var(--muted); font-size:.98rem }
+.mesure .k{ color:var(--accent); font-size:.92rem; font-weight:400 }
+.mesure ul{ margin:6px 0 0; padding:0; list-style:none; display:grid; gap:8px; font-size:.94rem; color:var(--muted) }
+.mesure li{ padding-top:8px; border-top:1px solid var(--line) }
+.duo{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:clamp(12px,1.6vw,20px) }
+@media (max-width:760px){ .duo{ grid-template-columns:minmax(0,1fr) } }
+
+.nuit .lead{ color:var(--muted) }
+/* livrables */
+.bento{ display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); gap:clamp(12px,1.6vw,20px) }
+.case{ grid-column:span 2; border-radius:var(--r); background-color:var(--surface); border:1px solid var(--line); padding:28px; display:grid; gap:10px; align-content:end; min-height:240px; position:relative; overflow:hidden }
+.case.img{ grid-column:span 3; min-height:360px; border:0; background-color:var(--bg-2); background-size:cover; background-position:center }
+.case.img::before{ content:""; position:absolute; inset:0; background:linear-gradient(0deg,rgba(8,9,14,.92),rgba(8,9,14,0) 62%) }
+.case > *{ position:relative }
+.case .k{ color:var(--accent); font-size:.92rem; font-weight:400 }
+.case p{ color:var(--muted); font-size:.98rem } .case.img p{ color:#D2CCC1 }
+@media (max-width:900px){ .case,.case.img{ grid-column:span 6!important } }
+.galerie{ display:grid; grid-template-columns:repeat(12,minmax(0,1fr)); gap:clamp(12px,1.6vw,20px) }
+.galerie figure{ grid-column:span 6 } .galerie figure.large{ grid-column:span 12 }
+@media (max-width:700px){ .galerie figure{ grid-column:span 12 } }
+.publics{ display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:clamp(18px,2.4vw,32px) }
+@media (max-width:980px){ .publics{ grid-template-columns:repeat(2,minmax(0,1fr)) } }
+@media (max-width:560px){ .publics{ grid-template-columns:minmax(0,1fr) } }
+.publics div{ display:grid; gap:12px; align-content:start; padding-top:22px; border-top:1px solid var(--accent) }
+.publics p{ color:var(--muted); font-size:.98rem }
+/* formules */
+.formules{ align-items:stretch }
+.formule ul{ list-style:none; margin:0; padding:0; display:grid; gap:10px; font-size:.98rem }
+.formule li{ padding-left:22px; position:relative }
+.formule li::before{ content:""; position:absolute; left:0; top:.62em; width:8px; height:1px; background:var(--accent) }
+.formule .prix{ font-size:.92rem; color:var(--muted) }
+.formule h3{ font-size:1.9rem; font-weight:200; letter-spacing:-.04em }
+.formule .btn{ justify-content:center; margin-top:8px; text-decoration:none; padding-inline:26px; border-color:var(--line-2) }
+.formule.phare{ background:linear-gradient(160deg,rgba(75,55,201,.22),rgba(226,192,141,.08)); border-color:rgba(226,192,141,.35) }
+.formule.phare .prix{ color:var(--accent) }
+.formule.phare .btn{ background:var(--accent); border-color:var(--accent); color:var(--on-accent) }
+/* questions */
+.faq{ display:grid; max-width:880px }
+.faq details{ border-top:1px solid var(--line); padding-block:4px } .faq details:last-child{ border-bottom:1px solid var(--line) }
+.faq summary{ cursor:pointer; list-style:none; padding-block:20px; font-weight:400; font-size:1.18rem; letter-spacing:-.015em; display:flex; justify-content:space-between; gap:16px; align-items:center }
+.faq summary::-webkit-details-marker{ display:none }
+.faq summary::after{ content:"+"; font-weight:200; font-size:1.6rem; line-height:1; color:var(--accent); flex:none; transition:transform .25s ease }
+.faq details[open] summary::after{ transform:rotate(45deg) }
+.faq p{ color:var(--muted); padding-bottom:22px }
+/* contact */
+.contact{ border-radius:32px; padding:clamp(34px,6vw,96px); display:grid; gap:30px; position:relative; overflow:hidden; border:1px solid var(--line); background:
+  radial-gradient(60% 80% at 100% 100%,rgba(75,55,201,.35),rgba(75,55,201,0) 70%),
+  radial-gradient(40% 60% at 0% 0%,rgba(226,192,141,.12),rgba(226,192,141,0) 70%),var(--bg-2) }
+.contact .lead{ color:var(--muted) }
+.coord{ display:flex; flex-wrap:wrap; gap:12px 30px; font-size:1.1rem; align-items:center }
+.coord span{ user-select:all }
+.coord button{ font:inherit; font-size:.88rem; background:transparent; color:var(--accent); border:1px solid rgba(226,192,141,.5); border-radius:999px; padding:7px 15px; cursor:pointer }
+/* pied de page */
+footer.pied{ color:var(--muted); margin-top:clamp(64px,8vw,112px); font-size:.95rem; border-top:1px solid var(--line) }
+.pied .cols{ display:grid; grid-template-columns:1.6fr repeat(3,minmax(0,1fr)); gap:clamp(24px,4vw,64px); padding-block:64px 44px }
+@media (max-width:860px){ .pied .cols{ grid-template-columns:repeat(2,minmax(0,1fr)) } .pied .cols > :first-child{ grid-column:span 2 } }
+.pied h4{ margin:0 0 14px; font-weight:500; font-size:.95rem; color:var(--fg) }
+.pied ul{ list-style:none; margin:0; padding:0; display:grid; gap:9px }
+.pied a{ text-decoration:none } .pied a:hover{ color:var(--fg) }
+.pied .marque{ color:var(--fg); margin-bottom:14px }
+.pied .bas{ border-top:1px solid var(--line); padding-block:22px 34px; display:flex; flex-wrap:wrap; gap:8px 24px; justify-content:space-between; font-size:.86rem }
+/* vitrine : trois maquettes sur leur socle */
+.vitrine{ position:relative; aspect-ratio:21/9; min-height:440px; max-width:100%; border-radius:var(--r); overflow:hidden; border:1px solid var(--line); background:radial-gradient(70% 90% at 50% 110%,rgba(75,55,201,.3),rgba(75,55,201,0) 70%),var(--bg-2) }
+.vitrine canvas{ display:block; width:100%; height:100% }
+.vitrine .lab{ position:absolute; top:22px; display:grid; gap:2px; text-align:center; width:33.333%; pointer-events:none }
+.vitrine .lab b{ font-size:1.15rem; font-weight:500 } .vitrine .lab span{ color:var(--muted); font-size:.92rem }
+.vitrine .lab.g{ left:0 } .vitrine .lab.d{ left:33.333% } .vitrine .lab.t{ left:66.666% }
+@media (max-width:760px){ .vitrine{ aspect-ratio:3/7.6; min-height:0 } .vitrine .lab{ width:100%; left:0 } .vitrine .lab.g{ top:12px } .vitrine .lab.d{ left:0; top:calc(33.333% + 12px) } .vitrine .lab.t{ left:0; top:calc(66.666% + 12px) } }
+@media (prefers-reduced-motion: reduce){ html{ scroll-behavior:auto } .btn,.plein img{ transition:none } .pastille i,.verre,.sceau svg,.defile div{ animation:none } }
+</style>
+
+<nav class="top"><div class="wrap">
+  <a class="marque" href="#accueil"><svg viewBox="0 0 26 26" fill="none" aria-hidden="true"><path d="M13 2 24 8v10L13 24 2 18V8z" stroke="currentColor" stroke-width="1.4"/><path d="M2 8l11 6 11-6M13 14v10" stroke="currentColor" stroke-width="1.4"/></svg>Plateau 3D</a>
+  <div class="onglets" id="onglets"><a href="#accueil" aria-current="true">Accueil</a><a href="#avant-apres">Avant / après</a><a href="#sur-mesure">Sur mesure</a><a href="#immeuble">Exemples</a><a href="#appartement">Appartements</a><a href="#formules">Formules</a><a href="#questions">Questions</a></div>
+  <a class="btn" href="#contact">Envoyer mes plans</a>
+</div></nav>
+
+<header class="hero3d" id="accueil">
+  <div class="scene" id="scene">
+    <canvas id="gl" aria-label="Maquette 3D de la maison"></canvas>
+    <div class="charge" id="charge"><img src="m/flottant.png" alt=""><span>Chargement de la maquette…</span></div>
+    <div class="verre v1">Toit retirable<small>Chaque pièce meublée</small></div>
+    <div class="verre v2">Soleil réel<small>Heure par heure</small></div>
+    <div class="verre v3">Visite à pied<small>À hauteur d’yeux</small></div>
+    <div class="hud haut">
+      <div class="groupe" role="group" aria-label="Niveaux visibles" id="coupes"><button data-coupe="0" aria-pressed="true">Maison entière</button><button data-coupe="1" aria-pressed="false">Sans le toit</button><button data-coupe="2" aria-pressed="false">Rez-de-chaussée</button></div>
+      <div class="groupe"><button id="plein" type="button">Plein écran</button><button type="button" data-explorer="0">Fermer</button></div>
+    </div>
+    <div class="palette" id="palette" aria-label="Changer les couleurs">
+      <span>Volets</span><div data-mat="Volets"><button aria-label="Gris-vert" aria-pressed="true" data-c="#7C9595" style="background:#7C9595"></button><button aria-label="Bleu nuit" aria-pressed="false" data-c="#2F4A5C" style="background:#2F4A5C"></button><button aria-label="Rouge" aria-pressed="false" data-c="#7A2E2A" style="background:#7A2E2A"></button><button aria-label="Vert" aria-pressed="false" data-c="#3F5A3C" style="background:#3F5A3C"></button><button aria-label="Blanc" aria-pressed="false" data-c="#E9E4D8" style="background:#E9E4D8"></button></div>
+      <span>Façade</span><div data-mat="Enduit"><button aria-label="Pierre" aria-pressed="true" data-c="#D9CFBD" style="background:#D9CFBD"></button><button aria-label="Blanc cassé" aria-pressed="false" data-c="#EDEAE2" style="background:#EDEAE2"></button><button aria-label="Sable" aria-pressed="false" data-c="#C9B79A" style="background:#C9B79A"></button><button aria-label="Gris" aria-pressed="false" data-c="#B9C0BE" style="background:#B9C0BE"></button></div>
+    </div>
+    <div class="hud bas">
+      <div class="groupe" role="group" aria-label="Points de vue" id="vues"><button data-vue="jardin" aria-pressed="true">Jardin</button><button data-vue="ciel" aria-pressed="false">Du ciel</button><button data-vue="bassin" aria-pressed="false">Bassin</button><button data-vue="entree" aria-pressed="false">Entrée</button></div>
+      <div class="soleil"><button type="button" id="jouer" aria-label="Faire défiler la journée">▶</button><input type="range" id="heure" min="5" max="23" step="0.05" value="19.7" aria-label="Heure de la journée"><b id="heuretxt">19 h 42</b></div>
+    </div>
+  </div>
+  <div class="accroche"><div class="wrap">
+    <div class="in"><h1>Votre bien en 3D, avant même la visite.</h1><p class="lead">Vous m’envoyez vos plans. Je vous renvoie une ébauche en 3D.</p></div>
+    <div class="in bas">
+    <div class="row"><button class="btn accent" type="button" data-explorer="1">Explorer la maison</button><a class="btn ghost" href="#contact">Envoyer mes plans</a></div></div>
+  </div></div>
+</header>
+<div class="defile" aria-label="Pour les Agents immobiliers, Architectes, Promoteurs, Marchands de biens, Propriétaires, Investisseurs, Architectes d’intérieur, Constructeurs de maisons"><div aria-hidden="true"><span>Agents immobiliers</span><span>Architectes</span><span>Promoteurs</span><span>Marchands de biens</span><span>Propriétaires</span><span>Investisseurs</span><span>Architectes d’intérieur</span><span>Constructeurs de maisons</span><span>Agents immobiliers</span><span>Architectes</span><span>Promoteurs</span><span>Marchands de biens</span><span>Propriétaires</span><span>Investisseurs</span><span>Architectes d’intérieur</span><span>Constructeurs de maisons</span></div></div>
+
+<div class="wrap"><div class="chiffres">
+  <div><b>12 736</b><span>tuiles posées une à une</span></div>
+  <div><b>10</b><span>pièces meublées</span></div>
+  <div><b>18 h</b><span>de soleil, de l’aube à la nuit</span></div>
+</div></div>
+
+
+<section id="avant-apres"><div class="wrap">
+  <div class="tete">
+    <div class="eyebrow">Avant / après</div>
+    <h2>Vous m’envoyez un plan. Vous recevez une maison.</h2>
+    <p class="lead">Glissez la poignée.</p>
+  </div>
+  <div class="compare large">
+    <img src="m/aerien.jpg" alt="Après : la maison modélisée avec sa terrasse, son bassin et son jardin">
+    <img class="av" src="m/avant.jpg" alt="Avant : le plan du rez-de-chaussée posé à plat">
+    <div class="barre"></div><span class="etq g">Avant · votre plan</span><span class="etq d">Après · votre bien en 3D</span>
+    <input type="range" id="curseur-avant" min="0" max="100" value="50" aria-label="Faire glisser pour comparer avant et après">
+  </div>
+</div></section>
+
+
+<section id="sur-mesure"><div class="wrap">
+  <div class="tete">
+    <div class="eyebrow">Sur mesure</div>
+    <h2>Vous demandez. Je modifie.</h2>
+    <p class="lead">Rien n’est figé. Chaque version tient dans un lien.</p>
+  </div>
+  <div class="mesure">
+    <div class="carte"><div class="k">Mobilier</div><h3>Les meubles que vous choisissez</h3><p>Vos modèles préférés, issus des grandes enseignes, aux vraies dimensions.</p><ul><li>Canapés, lits, tables, luminaires</li><li>Cuisine et salle de bain équipées</li><li>Plusieurs ambiances pour une même pièce</li></ul></div>
+    <div class="carte"><div class="k">Visite</div><h3>Entrer dans la maison</h3><p>De pièce en pièce, jusqu’à l’étage. Au doigt ou au clavier.</p><ul><li>Hauteur de regard réelle</li><li>Murs et portes respectés</li><li>Plan de repérage à l’écran</li></ul></div>
+    <div class="carte"><div class="k">Modifications</div><h3>Changer couleurs et matières</h3><p>Comparez plusieurs versions avant de décider. Essayez avec le bouton Explorer, en haut.</p><ul><li>Teintes de façade et de volets</li><li>Sols et revêtements</li><li>Cloisons déplacées, pièces réunies</li></ul></div>
+  </div>
+</div></section>
+
+<section id="methode" class="gris"><div class="wrap">
+  <div class="tete">
+    <div class="eyebrow">La méthode</div>
+    <h2>Chaque mur vient de votre plan.</h2>
+  </div>
+  <div class="deux">
+    <div>
+      <div class="compare plan">
+        <img src="m/interieur.jpg" alt="Le rez-de-chaussée meublé, vu de dessus">
+        <img class="av" src="m/plan.svg" alt="Plan du rez-de-chaussée de la même maison">
+        <div class="barre"></div><span class="etq g">Le plan</span><span class="etq d">Les pièces meublées</span>
+        <input type="range" id="curseur-plan" min="0" max="100" value="50" aria-label="Faire glisser pour passer du plan aux pièces meublées">
+      </div>
+      <figcaption>Même échelle, mêmes murs, mêmes portes</figcaption>
+    </div>
+    <ol class="etapes">
+      <li><h3>Vous envoyez vos plans</h3><p>PDF, fichier d’architecte ou photo d’un plan papier. Quelques photos, l’adresse.</p></li>
+      <li><h3>Je vous renvoie une ébauche</h3><p>Vous voyez déjà le bien en volume. Ce que le plan ne dit pas, je le vérifie sur les vues aériennes.</p></li>
+      <li><h3>Vous ajustez</h3><p>Une teinte, un volet, un meuble. Je corrige.</p></li>
+      <li><h3>Vous partagez le lien</h3><p>Dans l’annonce, le dossier de vente ou un message à l’acquéreur.</p></li>
+    </ol>
+  </div>
+</div></section>
+
+<section id="livrables"><div class="wrap">
+  <div class="tete">
+    <div class="eyebrow">Ce que vous recevez</div>
+    <h2>Un modèle. Six façons de le montrer.</h2>
+  </div>
+  <div class="bento">
+    <div class="case img" style="background-image:url('m/bassin.jpg')"><div class="k">Lien</div><h3>La maquette à manipuler</h3><p>Dans le navigateur. On tourne autour, on s’approche. Rien à installer.</p></div>
+    <div class="case img" style="background-image:url('m/interieur.jpg')"><div class="k">Intérieur</div><h3>Les niveaux qui s’ouvrent</h3><p>Toit retiré, étage retiré. Chaque niveau, meubles compris.</p></div>
+    <div class="case" style="background:var(--alt)"><div class="k">Lumière</div><h3>Le soleil heure par heure</h3><p>L’ombre à 9 h. La terrasse au soleil. La maison le soir.</p></div>
+    <div class="case" style="background:var(--alt)"><div class="k">Images</div><h3>Des vues haute définition</h3><p>Façades, toiture, jardin. Prêtes pour l’annonce.</p></div>
+    <div class="case" style="background:var(--alt)"><div class="k">Plan</div><h3>Le plan qui devient maison</h3><p>Plan et maquette superposés. Un geste pour passer de l’un à l’autre.</p></div>
+    <div class="case img" style="background-image:url('m/soir.jpg');grid-column:span 6;min-height:380px"><div class="k">Ambiance</div><h3>Le bien à la tombée du jour</h3><p>Pièces allumées. L’image de tête pour votre annonce.</p></div>
+  </div>
+</div></section>
+
+
+<section id="immeuble"><div class="wrap">
+  <div class="tete">
+    <div class="eyebrow">Trois exemples</div>
+    <h2>Une maison, un immeuble, un appartement.</h2>
+    <p class="lead">Les trois maquettes tournent en direct. Même méthode pour chaque bien.</p>
+  </div>
+  <div class="vitrine" id="vitrinebox"><canvas id="vitrine" aria-label="Trois maquettes 3D qui tournent : une maison, un immeuble et un appartement"></canvas>
+    <div class="lab g"><b>Maison de famille</b><span>236 m², terrasse et bassin</span></div><div class="lab d"><b>Immeuble parisien</b><span>Étudié en version hôtel</span></div><div class="lab t"><b>Appartement</b><span>67 m², plan dessiné</span></div></div>
+  <div class="tete" style="margin-top:clamp(40px,6vw,80px)"><h3 style="font-size:clamp(1.5rem,2.6vw,2.2rem)">L’immeuble, étage par étage.</h3></div>
+  <div class="duo">
+    <figure><div class="plein"><img src="m/hotel_a.jpg" loading="lazy" width="1800" height="1272" alt="Immeuble en pierre, dernier étage ouvert : chambres d’hôtel meublées et escalier"></div><figcaption>Un étage de chambres, ouvert</figcaption></figure>
+    <figure><div class="plein"><img src="m/hotel_b.jpg" loading="lazy" width="1800" height="1272" alt="Vue rapprochée des chambres d’hôtel et de la façade en pierre"></div><figcaption>Chambres, salles d’eau, circulations</figcaption></figure>
+  </div>
+</div></section>
+
+<section class="gris" id="appartement"><div class="wrap">
+  <div class="tete">
+    <div class="eyebrow">Appartements</div>
+    <h2>Pas de plan ? Je le dessine aussi.</h2>
+    <p class="lead">Photos, mesures ou vieux plan suffisent. Vous recevez le plan coté avec les surfaces, et l’appartement meublé en 3D.</p>
+  </div>
+  <div class="deux">
+    <div>
+      <div class="compare plan" style="aspect-ratio:1200/1100">
+        <img src="m/appart_dessus.jpg" alt="L’appartement meublé, vu de dessus">
+        <img class="av" src="m/appart_plan.svg" alt="Plan coté de l’appartement, avec la surface de chaque pièce">
+        <div class="barre"></div><span class="etq g">Le plan dessiné</span><span class="etq d">L’appartement meublé</span>
+        <input type="range" id="curseur-appart" min="0" max="100" value="50" aria-label="Faire glisser pour passer du plan à l’appartement meublé">
+      </div>
+      <figcaption>Même relevé, mêmes murs, mêmes surfaces</figcaption>
+    </div>
+    <div style="display:grid;gap:16px">
+      <figure><div class="plein"><img src="m/appart_iso.jpg" loading="lazy" width="1240" height="900" alt="L’appartement en maquette, plafond retiré : séjour, cuisine, chambres, salle de bain et balcon"></div><figcaption>L’appartement entier, plafond retiré</figcaption></figure>
+      <figure><div class="plein"><img src="m/appart_salon.jpg" loading="lazy" width="1920" height="1200" alt="Vue rapprochée du séjour, de la cuisine et de la salle à manger"></div><figcaption>Le séjour et la cuisine, meublés</figcaption></figure>
+    </div>
+  </div>
+</div></section>
+
+<section id="publics"><div class="wrap">
+  <div class="tete">
+    <div class="eyebrow">Pour qui</div>
+    <h2>On achète ce qu’on arrive à imaginer.</h2>
+  </div>
+  <div class="publics">
+    <div><h3>Agents immobiliers</h3><p>Un argument de plus au rendez-vous de mandat. Le vendeur voit le soin apporté.</p></div>
+    <div><h3>Architectes</h3><p>Votre projet montré au client avant le chantier, depuis vos propres plans.</p></div>
+    <div><h3>Promoteurs et marchands de biens</h3><p>L’existant et le projet dans un même lien. L’acheteur voit ce que le bien deviendra.</p></div>
+    <div><h3>Propriétaires</h3><p>Vos acquéreurs sont loin ? Ils voient le bien comme vous.</p></div>
+  </div>
+</div></section>
+
+<section class="gris" id="formules"><div class="wrap">
+  <div class="tete">
+    <div class="eyebrow">Formules</div>
+    <h2>Trois formules.</h2>
+    <p class="lead">Le prix dépend du bien et de vos documents. Devis après un premier échange.</p>
+  </div>
+  <div class="formules">
+    <div class="formule"><div class="prix">Sur devis</div><h3>Extérieur</h3><ul><li>Bien, toiture et terrain modélisés</li><li>Plan coté dessiné si vous n’en avez pas</li><li>Maquette à manipuler par lien</li><li>Soleil heure par heure</li><li>3 images haute définition</li></ul><a class="btn ghost" href="#contact">Demander un devis</a></div>
+    <div class="formule phare"><div class="prix">Sur devis · idéal pour vendre</div><h3>Extérieur et intérieur</h3><ul><li>Toute la formule Extérieur</li><li>Pièces, cloisons, portes et mobilier</li><li>Toit et étages qui s’ouvrent</li><li>Avant / après à partir de votre plan</li><li>5 images, dont une de nuit</li></ul><a class="btn" href="#contact">Demander un devis</a></div>
+    <div class="formule"><div class="prix">Sur devis</div><h3>Projet</h3><ul><li>Toute la formule Extérieur et intérieur</li><li>Deux versions du bien : état actuel et projet</li><li>Mobilier à votre choix et visite à pied</li><li>Avant / après des travaux</li><li>Page à vos couleurs</li></ul><a class="btn ghost" href="#contact">Demander un devis</a></div>
+  </div>
+</div></section>
+
+<section id="questions"><div class="wrap">
+  <div class="tete">
+    <div class="eyebrow">Questions fréquentes</div>
+    <h2>Vos questions.</h2>
+  </div>
+  <div class="faq">
+    <details><summary>De quels documents avez-vous besoin ?</summary><p>Un plan, même ancien ou photographié, et quelques photos des façades. Un plan d’architecte donne le résultat le plus précis.</p></details>
+    <details><summary>Et si je n’ai aucun plan ?</summary><p>Je le dessine, depuis vos mesures, vos photos ou un croquis. Vous recevez le plan coté, puis la maquette.</p></details>
+    <details><summary>Est-ce que ça fonctionne sur téléphone ?</summary><p>Oui. La maquette s’ouvre dans le navigateur, sans application ni compte.</p></details>
+    <details><summary>Peut-on montrer un projet de travaux ?</summary><p>Oui. Le bien avant et après rénovation, dans le même lien.</p></details>
+    <details><summary>La maquette a-t-elle une valeur contractuelle ?</summary><p>Non. C’est un outil de présentation fidèle à vos documents, pas un relevé de géomètre.</p></details>
+    <details><summary>Que deviennent mes documents ?</summary><p>Ils servent uniquement à modéliser votre bien. Rien n’est publié sans votre accord.</p></details>
+    <details><summary>Combien de temps faut-il ?</summary><p>Selon le bien. Je vous donne le délai avant de commencer.</p></details>
+  </div>
+</div></section>
+
+<section id="contact" style="padding-bottom:0"><div class="wrap">
+  <div class="contact">
+    <h2>Envoyez vos plans.<br>Recevez une ébauche.</h2>
+    <p class="lead">Ensuite, quinze minutes au téléphone pour aller plus loin.</p>
+    <div class="coord"><strong>Enzo Dardas</strong><span id="tel">06 74 84 18 52</span><span id="mel">dardasenzo@gmail.com</span><button type="button" id="copier">Copier l’adresse</button><a class="btn accent" href="mailto:dardasenzo@gmail.com?subject=Mes%20plans">Envoyer mes plans</a></div>
+  </div>
+</div></section>
+
+<footer class="pied"><div class="wrap">
+  <div class="cols">
+    <div><a class="marque" href="#accueil"><svg viewBox="0 0 26 26" fill="none" aria-hidden="true"><path d="M13 2 24 8v10L13 24 2 18V8z" stroke="currentColor" stroke-width="1.6"/><path d="M2 8l11 6 11-6M13 14v10" stroke="currentColor" stroke-width="1.6"/></svg>PLATEAU 3D</a><p>Maisons, appartements, immeubles en 3D, depuis leurs plans. Dans un simple lien.</p></div>
+    <div><h4>Le site</h4><ul><li><a href="#avant-apres">Avant / après</a></li><li><a href="#methode">La méthode</a></li><li><a href="#immeuble">Exemples</a></li><li><a href="#appartement">Appartements et plans</a></li></ul></div>
+    <div><h4>L’offre</h4><ul><li><a href="#sur-mesure">Sur mesure</a></li><li><a href="#livrables">Ce que vous recevez</a></li><li><a href="#publics">Pour qui</a></li><li><a href="#formules">Formules</a></li><li><a href="#questions">Questions fréquentes</a></li></ul></div>
+    <div><h4>Contact</h4><ul><li>Enzo Dardas</li><li>06 74 84 18 52</li><li>dardasenzo@gmail.com</li><li><a href="#contact">Envoyer mes plans</a></li></ul></div>
+  </div>
+  <div class="bas"><span>© 2026 Plateau 3D</span><span>Maison d’exemple dessinée pour la démonstration. Maquettes indicatives, non contractuelles.</span></div>
+</div></footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/libs/meshopt_decoder.js"></script>
+<script>
+(function(){
+  [].forEach.call(document.querySelectorAll(".compare"),function(c){var r=c.querySelector("input");r.addEventListener("input",function(){c.style.setProperty("--p",r.value+"%")})});
+  // onglets : celui de la partie visible s'allume
+  if(window.IntersectionObserver){var ong={};[].forEach.call(document.querySelectorAll("#onglets a"),function(a){ong[a.getAttribute("href").slice(1)]=a});
+    var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){for(var k in ong)ong[k].setAttribute("aria-current",k===e.target.id?"true":"false")}})},{rootMargin:"-45% 0px -50% 0px"});
+    Object.keys(ong).forEach(function(k){var el=document.getElementById(k);if(el)io.observe(el)})}
+  var bc=document.getElementById("copier");
+  bc.addEventListener("click",function(){var t=document.getElementById("mel").textContent;
+    function ok(){bc.textContent="Adresse copiée";setTimeout(function(){bc.textContent="Copier l’adresse"},1800)}
+    function sel(){var r=document.createRange();r.selectNodeContents(document.getElementById("mel"));var s=getSelection();s.removeAllRanges();s.addRange(r);bc.textContent="Adresse sélectionnée"}
+    try{navigator.clipboard.writeText(t).then(ok,sel)}catch(e){sel()}});
+
+  // ------------------------------------------------------------------ maquette 3D
+  var box=document.getElementById("scene"), cv=document.getElementById("gl"), charge=document.getElementById("charge");
+  function panne(){charge.firstElementChild.textContent="Maquette indisponible sur ce navigateur"}
+  var hero=document.getElementById("accueil");
+  if(!window.THREE){panne();return}
+  var rd; try{rd=new THREE.WebGLRenderer({canvas:cv,antialias:true,alpha:true,powerPreference:"high-performance"})}catch(e){panne();return}
+  rd.setClearColor(0,0);
+  var mobile=matchMedia("(max-width:760px)").matches;
+  rd.setPixelRatio(Math.min(devicePixelRatio||1,mobile?1.5:2)); rd.outputEncoding=THREE.sRGBEncoding; rd.toneMapping=THREE.ACESFilmicToneMapping; rd.toneMappingExposure=1.05;
+  rd.shadowMap.enabled=true; rd.shadowMap.type=THREE.PCFSoftShadowMap;
+  var sc=new THREE.Scene(); sc.fog=new THREE.Fog(0xCFE3F2,90,330);
+  var cam=new THREE.PerspectiveCamera(34,16/9,.3,900), ctl=new THREE.OrbitControls(cam,cv);
+  ctl.enableDamping=true; ctl.dampingFactor=.08; ctl.minDistance=5; ctl.maxDistance=80; ctl.maxPolarAngle=Math.PI/2-.03; ctl.enablePan=false; ctl.autoRotate=true; ctl.autoRotateSpeed=.6;
+  var VUES={flotte:[[-37.7,22.1,47.8],[6.2,2.6,3]],flotteM:[[-30,23,42],[6.2,1.4,3]],hero:[[-19,8,29],[6.5,2.6,2.5]],jardin:[[-14,5.5,24],[6.5,2.6,2.5]],ciel:[[-10,34,26],[6.5,0,3]],bassin:[[-4.2,1.5,15.2],[9,2.2,2]],entree:[[9,3.2,-30],[7,3,-4]],dedans:[[-3,27,19],[7,1.5,1.5]]};
+  var visee=null;
+  function pose(n,doux){var v=VUES[n];if(!doux){cam.position.set.apply(cam.position,v[0]);ctl.target.set.apply(ctl.target,v[1]);ctl.update();return}
+    visee={p:new THREE.Vector3().fromArray(v[0]),t:new THREE.Vector3().fromArray(v[1]),k:0}}
+  ctl.enabled=!mobile; ctl.enableZoom=false; cv.style.cursor=mobile?"pointer":"grab"; cv.style.touchAction=mobile?"pan-y":"none"; pose(mobile?"flotteM":"flotte");
+  function C(h){return new THREE.Color(h).convertSRGBToLinear()}
+  function mel(a,b,t){return a.clone().lerp(b,t)}
+  function lisse(a,b,x){var t=Math.min(1,Math.max(0,(x-a)/(b-a)));return t*t*(3-2*t)}
+
+  // ciel : dôme en dégradé avec disque solaire
+  var cielU={haut:{value:C(0x3F86D9)},bas:{value:C(0xCFE3F2)},sol:{value:C(0x6E7A5E)},dir:{value:new THREE.Vector3(0,1,0)},sun:{value:C(0xFFF3E0)},jour:{value:1}};
+  var dome=new THREE.Mesh(new THREE.SphereGeometry(600,32,16),new THREE.ShaderMaterial({uniforms:cielU,side:THREE.BackSide,depthWrite:false,fog:false,
+    vertexShader:"varying vec3 vD;void main(){vD=normalize(position);gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}",
+    fragmentShader:"uniform vec3 haut;uniform vec3 bas;uniform vec3 sol;uniform vec3 dir;uniform vec3 sun;uniform float jour;varying vec3 vD;"+
+      "float h1(vec3 p){return fract(sin(dot(p,vec3(12.9898,78.233,37.719)))*43758.5453);}"+
+      "void main(){vec3 d=normalize(vD);float h=max(d.y,0.);vec3 c=mix(bas,haut,pow(h,.5));c=mix(c,sol,smoothstep(0.,-.06,d.y));"+
+      "float s=max(dot(d,normalize(dir)),0.);c+=sun*(pow(s,900.)*6.+pow(s,24.)*.35+pow(s,4.)*.08)*step(0.,d.y+.02);"+
+      "vec3 g=floor(d*260.);float st=step(.9965,h1(g))*(1.-jour)*smoothstep(.02,.3,d.y);c+=vec3(st);"+
+      "gl_FragColor=vec4(c,1.);\n#include <tonemapping_fragment>\n#include <encodings_fragment>\n}"}));
+  dome.renderOrder=-10; dome.frustumCulled=false; sc.add(dome);
+
+  var hemi=new THREE.HemisphereLight(0xffffff,0xffffff,.6); sc.add(hemi);
+  var sun=new THREE.DirectionalLight(0xffffff,2); sun.castShadow=true; var S=sun.shadow; S.mapSize.set(mobile?2048:4096,mobile?2048:4096);
+  S.camera.left=-32; S.camera.right=32; S.camera.top=32; S.camera.bottom=-32; S.camera.near=1; S.camera.far=220; S.bias=-.00035; S.normalBias=.035; S.radius=2.2;
+  var cible=new THREE.Vector3(6.5,0,2.5); sc.add(sun); sc.add(sun.target); sun.target.position.copy(cible);
+  // lampes des pièces (allumées à la nuit) : x, y, z dans le repère de la maquette
+  var LAMPES=[[3,2.6,-3.4,0],[7.6,2.6,-3.4,0],[11.3,2.6,-2.3,0],[11.5,2.5,3,0],[11.5,2.7,6,0],[11.3,2.6,-5.5,0],[3,5.2,-3.4,1],[7.7,5.2,-3.4,1],[11.3,5.2,-2.3,1],[11.3,5.2,-5.5,1]].slice(0,mobile?6:10).map(function(l){
+    var p=new THREE.PointLight(0xFFC48A,0,11,2); p.position.set(l[0],l[1],l[2]); p.userData.haut=l[3]; sc.add(p); return p});
+  var piscine=new THREE.PointLight(0x66E0E6,0,14,2); piscine.position.set(3,-.6,9.6); sc.add(piscine);
+
+  // matières : détail procédural + eau animée
+  var U={t:{value:0},jour:{value:1},nuit:{value:0}};
+  var BRUIT="float h21(vec2 p){p=fract(p*vec2(123.34,456.21));p+=dot(p,p+45.32);return fract(p.x*p.y);}float vn(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(h21(i),h21(i+vec2(1.,0.)),f.x),mix(h21(i+vec2(0.,1.)),h21(i+vec2(1.,1.)),f.x),f.y);}";
+  function detail(m,cle,o){m.onBeforeCompile=function(sh){sh.uniforms.uT=U.t;sh.uniforms.uJour=U.jour;sh.uniforms.uNuit=U.nuit;
+      sh.vertexShader=sh.vertexShader.replace("#include <common>","#include <common>\nvarying vec3 vWp;").replace("#include <project_vertex>","#include <project_vertex>\nvWp=(modelMatrix*vec4(transformed,1.)).xyz;");
+      var f=sh.fragmentShader.replace("#include <common>","#include <common>\nvarying vec3 vWp;uniform float uT;uniform float uJour;uniform float uNuit;\n"+BRUIT);
+      if(o.couleur)f=f.replace("#include <color_fragment>","#include <color_fragment>\n"+o.couleur);
+      if(o.normale)f=f.replace("#include <normal_fragment_maps>","#include <normal_fragment_maps>\n"+o.normale);
+      if(o.lueur)f=f.replace("#include <emissivemap_fragment>","#include <emissivemap_fragment>\n"+o.lueur);
+      sh.fragmentShader=f};
+    m.customProgramCacheKey=function(){return cle}; m.needsUpdate=true}
+  var HAUT="vec3 upv=normalize((viewMatrix*vec4(0.,1.,0.,0.)).xyz);";
+  var DET={
+    Pelouse:{couleur:"diffuseColor.rgb*=.86+.09*sin(vWp.z*2.2)+.2*(vn(vWp.xz*.35)-.5)+.16*(vn(vWp.xz*9.)-.5);"},
+    Terrasse:{couleur:"vec2 gj=abs(fract(vec2(vWp.x+step(1.,mod(vWp.z/.6,2.))*.45,vWp.z)/vec2(.9,.6))-.5);float jt=smoothstep(.485,.497,max(gj.x,gj.y));diffuseColor.rgb*=(1.-.35*jt)*(.93+.14*vn(floor(vec2(vWp.x+step(1.,mod(vWp.z/.6,2.))*.45,vWp.z)/vec2(.9,.6))*7.3));"},
+    Enduit:{couleur:"diffuseColor.rgb*=.94+.1*vn(vWp.xy*14.+vWp.z*9.)+.05*(vn(vWp.xz*.8+vWp.y)-.5);"},
+    Pierre:{couleur:"diffuseColor.rgb*=.9+.2*vn(vWp.xz*6.+vWp.y*7.);"},
+    Tuiles:{couleur:"diffuseColor.rgb*=.85+.3*vn(vWp.xz*1.3+vWp.y);"},
+    Gravier:{couleur:"diffuseColor.rgb*=.8+.4*vn(vWp.xz*40.);"},
+    Parquet:{couleur:"float lm=floor(vWp.x/.14);diffuseColor.rgb*=.86+.22*h21(vec2(lm,floor((vWp.z+lm*.37)/1.2)));"},
+    Feuillage:{couleur:"diffuseColor.rgb*=.75+.5*vn(vWp.xz*1.6+vWp.y*1.9);"},
+    Haie:{couleur:"diffuseColor.rgb*=.72+.56*vn(vWp.xz*11.+vWp.y*13.);"},
+    Bassin:{couleur:"vec2 mz=abs(fract(vWp.xz/.12+vWp.y/.12)-.5);diffuseColor.rgb*=1.-.18*smoothstep(.44,.5,max(mz.x,mz.y));",
+      lueur:"if(vWp.y<.02){vec2 q=vWp.xz;float ca=.5+.5*sin(q.x*5.+sin(q.y*4.+uT*1.3)*1.6+uT);float cb=.5+.5*sin(q.y*6.+sin(q.x*3.-uT*1.1)*1.6);totalEmissiveRadiance+=vec3(.35,.6,.6)*pow(ca*cb,2.2)*.9*uJour+vec3(.05,.42,.48)*uNuit;}"},
+    Eau:{normale:HAUT+"if(dot(normal,upv)>.6){vec2 q=vWp.xz;float a1=q.x*2.3+q.y*1.1+uT*1.5,a2=q.x*-1.4+q.y*2.6+uT*1.1,a3=q.x*5.2-q.y*4.1+uT*2.3,a4=q.x*8.+q.y*9.-uT*2.9;"+
+      "float dx=.05*cos(a1)*2.3+.045*cos(a2)*-1.4+.018*cos(a3)*5.2+.008*cos(a4)*8.;float dz=.05*cos(a1)*1.1+.045*cos(a2)*2.6+.018*cos(a3)*-4.1+.008*cos(a4)*9.;"+
+      "normal=normalize((viewMatrix*vec4(normalize(vec3(-dx,1.,-dz)),0.)).xyz);}"}
+  };
+  var MATS={}, verre=null, toit=[], etage=[], envH=-9, pm=new THREE.PMREMGenerator(rd), envT=null;
+  function env(h,haut,bas){ // petit ciel pour les reflets, recalculé quand l'heure change vraiment
+    if(Math.abs(h-envH)<.4)return; envH=h;
+    function face(a,b){var c=document.createElement("canvas");c.width=c.height=32;var q=c.getContext("2d"),g=q.createLinearGradient(0,0,0,32);g.addColorStop(0,a);g.addColorStop(1,b);q.fillStyle=g;q.fillRect(0,0,32,32);return c}
+    var A="#"+haut.clone().convertLinearToSRGB().getHexString(), B="#"+bas.clone().convertLinearToSRGB().getHexString(), s=face(A,B);
+    var t=new THREE.CubeTexture([s,s,face(A,A),face("#4E5A44","#4E5A44"),s,s]); t.needsUpdate=true; t.encoding=THREE.sRGBEncoding;
+    var n=pm.fromCubemap(t).texture; sc.environment=n; if(envT)envT.dispose(); envT=n; t.dispose()}
+
+  var heure=document.getElementById("heure"), htxt=document.getElementById("heuretxt"), jouer=document.getElementById("jouer"), lecture=false;
+  var NUIT_H=C(0x060A1A), OR_H=C(0x35589A), JOUR_H=C(0x3A82D8), NUIT_B=C(0x131A33), OR_B=C(0xF2A064), JOUR_B=C(0xCFE3F2), SOL_J=C(0x6E7A5E), SOL_N=C(0x0A0D12);
+  function lumiere(){var h=parseFloat(heure.value), a=(h-6.5)/14*Math.PI, el=Math.sin(a), jour=lisse(-.07,.2,el), plein=lisse(.08,.55,el), nuit=1-jour;
+    var haut=mel(NUIT_H,mel(OR_H,JOUR_H,plein),jour), bas=mel(NUIT_B,mel(OR_B,JOUR_B,plein),jour);
+    cielU.haut.value.copy(haut); cielU.bas.value.copy(bas); cielU.sol.value.copy(mel(SOL_N,SOL_J,jour)); cielU.jour.value=jour; sc.fog.color.copy(bas);
+    var d=jour>.02?new THREE.Vector3(Math.cos(a)*.95,Math.max(el,.02)*.95+.03,.5*Math.max(el,0)+.28).normalize():new THREE.Vector3(-.35,.8,.45).normalize();
+    cielU.dir.value.copy(d); cielU.sun.value.copy(jour>.02?mel(C(0xFF7A2E),C(0xFFF3E0),plein).multiplyScalar(jour):C(0xBFD0FF).multiplyScalar(.5));
+    sun.position.copy(cible).addScaledVector(d,95); sun.color.copy(jour>.02?mel(C(0xFF8A3C),C(0xFFF1DC),plein):C(0x8FA8FF)); sun.intensity=jour>.02?jour*(.9+1.25*plein):.22;
+    hemi.color.copy(mel(C(0x2A3558),C(0xCFE1F5),jour)); hemi.groundColor.copy(mel(C(0x0B0E14),C(0x7C8468),jour)); hemi.intensity=.12+.36*jour;
+    rd.toneMappingExposure=.82+.12*jour; U.jour.value=jour; U.nuit.value=nuit;
+    LAMPES.forEach(function(p){p.intensity=nuit*1.7}); piscine.intensity=nuit*1.4;
+    if(verre){verre.emissive.copy(C(0xFFB96B)); verre.emissiveIntensity=nuit*.75; verre.opacity=.36+.3*nuit}
+    env(h,haut,bas); var hh=Math.floor(h+1e-6), mm=Math.round((h-hh)*60); if(mm===60){hh++;mm=0} htxt.textContent=hh+" h "+("0"+mm).slice(-2)}
+  heure.addEventListener("input",function(){lecture=false;jouer.textContent="▶";lumiere()});
+  jouer.addEventListener("click",function(){lecture=!lecture;jouer.textContent=lecture?"❚❚":"▶"});
+
+  // niveaux : le toit puis l'étage se soulèvent
+  var coupe=0, kT=0, kE=0;
+  function presse(id,b){[].forEach.call(document.querySelectorAll("#"+id+" button"),function(x){x.setAttribute("aria-pressed",x===b?"true":"false")})}
+  [].forEach.call(document.querySelectorAll("#coupes button"),function(b){b.addEventListener("click",function(){coupe=+b.dataset.coupe;presse("coupes",b);ctl.autoRotate=false;if(coupe>0)pose("dedans",true);else pose("jardin",true)})});
+  [].forEach.call(document.querySelectorAll("#vues button"),function(b){b.addEventListener("click",function(){ctl.autoRotate=false;pose(b.dataset.vue,true);presse("vues",b)})});
+  var tap=null, reprise=0;
+  cv.addEventListener("click",function(){if(mobile&&!hero.classList.contains("explore"))explorer(true)});
+  cv.addEventListener("pointerdown",function(e){ctl.autoRotate=false;visee=null;tap=[e.clientX,e.clientY];if(!mobile)cv.style.cursor="grabbing"});
+  cv.addEventListener("pointerup",function(e){if(!mobile)cv.style.cursor="grab";var ex=hero.classList.contains("explore");clearTimeout(reprise);if(!ex)reprise=setTimeout(function(){if(!hero.classList.contains("explore"))ctl.autoRotate=true},3000)});
+  var SOL=[], flot=new THREE.Group(), ombre=new THREE.Mesh(new THREE.PlaneGeometry(70,70),new THREE.ShadowMaterial({opacity:.42,depthWrite:false}));
+  ombre.material.onBeforeCompile=function(sh){sh.vertexShader=sh.vertexShader.replace("#include <common>","#include <common>\nvarying vec2 vP;").replace("#include <begin_vertex>","#include <begin_vertex>\nvP=position.xy;");sh.fragmentShader=sh.fragmentShader.replace("#include <common>","#include <common>\nvarying vec2 vP;").replace("#include <tonemapping_fragment>","gl_FragColor.a*=1.-smoothstep(10.,30.,length(vP));\n#include <tonemapping_fragment>")};
+  ombre.rotation.x=-Math.PI/2; ombre.position.set(6,-.02,3); ombre.receiveShadow=true; sc.add(ombre); sc.add(flot);
+  function decor(on){dome.visible=on; SOL.forEach(function(o){o.visible=on}); ombre.visible=!on}
+  function explorer(on){hero.classList.toggle("explore",on);ctl.enabled=on||!mobile;ctl.enableZoom=on;cv.style.cursor=on?"grab":(mobile?"pointer":"grab");cv.style.touchAction=on||!mobile?"none":"pan-y";decor(on);taille();
+    if(on){ctl.autoRotate=false;pose("jardin",true);presse("vues",document.querySelector("#vues button"))}
+    else{coupe=0;presse("coupes",document.querySelector("#coupes button"));lecture=false;jouer.textContent="▶";ctl.autoRotate=true;pose(mobile?"flotteM":"flotte",true);if(document.fullscreenElement)try{document.exitFullscreen()}catch(e){}}}
+  [].forEach.call(document.querySelectorAll("[data-explorer]"),function(b){b.addEventListener("click",function(){var on=b.dataset.explorer==="1";explorer(on);if(on)hero.scrollIntoView({behavior:"smooth",block:"start"})})});
+  document.getElementById("plein").addEventListener("click",function(){try{if(document.fullscreenElement)document.exitFullscreen();else{var r=box.requestFullscreen&&box.requestFullscreen();if(r&&r.catch)r.catch(function(){})}}catch(e){}});
+  [].forEach.call(document.querySelectorAll("#palette div"),function(d){[].forEach.call(d.querySelectorAll("button"),function(b){b.addEventListener("click",function(){var m=MATS[d.dataset.mat];if(m)m.color.copy(C(b.dataset.c));
+    [].forEach.call(d.querySelectorAll("button"),function(x){x.setAttribute("aria-pressed",x===b?"true":"false")})})})});
+  function taille(){var w=box.clientWidth,h=box.clientHeight;if(!w||!h)return;rd.setPixelRatio(Math.min(mobile?2:3,Math.max(devicePixelRatio||1,Math.sqrt(9e6/(w*h)))));rd.setSize(w,h,false);cam.aspect=w/h;if(!hero.classList.contains("explore"))cam.setViewOffset(w,h,0,-h*(mobile?.12:.18),w,h);else cam.clearViewOffset();cam.updateProjectionMatrix()}
+  window.addEventListener("resize",taille); document.addEventListener("fullscreenchange",function(){setTimeout(taille,60)});
+  var visible=true; if(window.IntersectionObserver)new IntersectionObserver(function(e){visible=e[0].isIntersecting},{rootMargin:"150px"}).observe(box);
+  var t0=performance.now(), tp=t0;
+  function boucle(now){requestAnimationFrame(boucle);if(!visible)return;var dt=Math.min(.1,(now-tp)/1000);tp=now;U.t.value=(now-t0)/1000;
+    if(lecture){var h=parseFloat(heure.value)+dt*1.6;if(h>23)h=5;heure.value=h;lumiere()}
+    if(visee){visee.k=Math.min(1,visee.k+dt*1.4);var e=1-Math.pow(1-visee.k,3);cam.position.lerp(visee.p,e*.14+.02);ctl.target.lerp(visee.t,e*.14+.02);if(visee.k>=1&&cam.position.distanceTo(visee.p)<.05)visee=null}
+    var ex=hero.classList.contains("explore"), cyc=(U.t.value%13)/13, ouv=lisse(.1,.24,cyc)-lisse(.7,.84,cyc);
+    var cT=ex?(coupe>=1?1:0):ouv*.36, cE=ex?(coupe>=2?1:0):ouv*.2; kT+=(cT-kT)*Math.min(1,dt*5); kE+=(cE-kE)*Math.min(1,dt*5);
+    toit.forEach(function(o){o.position.y=o.userData.y0+kT*kT*22;o.visible=kT<.97&&(o.name!=="Zinc"||kT<.02)}); etage.forEach(function(o){o.position.y=o.userData.y0+kE*kE*22;o.visible=kE<.97});
+    LAMPES.forEach(function(p){if(p.userData.haut)p.visible=kE<.5});
+    flot.position.y+=((ex?0:.35+Math.sin(U.t.value*.7)*.35)-flot.position.y)*Math.min(1,dt*3);
+    dome.position.copy(cam.position); ctl.update(); rd.render(sc,cam)}
+
+  // vitrine : la maison et l'immeuble, chacun sur un socle qui tourne (un seul canevas, deux vues)
+  (function(){var cvs=document.getElementById("vitrine"), bx=document.getElementById("vitrinebox"); if(!cvs||!window.IntersectionObserver)return; var r2=null, vu=false, S=[];
+    function init(){if(r2)return; try{r2=new THREE.WebGLRenderer({canvas:cvs,antialias:true,alpha:true})}catch(e){return}
+      r2.setPixelRatio(Math.min(devicePixelRatio||1,mobile?1.5:2)); r2.outputEncoding=THREE.sRGBEncoding; r2.toneMapping=THREE.ACESFilmicToneMapping; r2.toneMappingExposure=1; r2.shadowMap.enabled=true; r2.shadowMap.type=THREE.PCFSoftShadowMap; r2.setScissorTest(true);
+      ["m/maison.gltf.json","m/immeuble.gltf.json","m/appartement.gltf.json"].forEach(function(u,i){var s=new THREE.Scene(), cam=new THREE.PerspectiveCamera(26,1,.5,600), piv=new THREE.Group(); cam.position.set(0,26,82); cam.lookAt(0,6,0);
+        s.add(new THREE.HemisphereLight(0xE8ECFF,0x6A70A8,.62)); var d=new THREE.DirectionalLight(0xFFF1DA,2.1); d.position.set(-34,52,38); d.castShadow=true; d.shadow.mapSize.set(2048,2048); var q=d.shadow.camera; q.left=q.bottom=-30; q.right=q.top=30; q.far=200; d.shadow.bias=-.0004; d.shadow.normalBias=.05; s.add(d); s.add(piv);
+        var socle=new THREE.Mesh(new THREE.CylinderGeometry(17,17.8,1.8,96),new THREE.MeshStandardMaterial({color:C(0xE6E2DA),roughness:.55})); socle.position.y=-.92; socle.receiveShadow=true; piv.add(socle);
+        var lis=new THREE.Mesh(new THREE.CylinderGeometry(17.82,17.82,.22,96),new THREE.MeshStandardMaterial({color:C(0xE2C08D),roughness:.35,metalness:.6})); lis.position.y=-1.7; piv.add(lis);
+        S.push({s:s,cam:cam,piv:piv});
+        fetch(u).then(function(r){return r.text()}).then(function(t){new THREE.GLTFLoader().setMeshoptDecoder(MeshoptDecoder).parse(t,"",function(g){var root=g.scene, bb=new THREE.Box3(); root.updateMatrixWorld(true);
+          root.traverse(function(o){if(!o.isMesh)return; var nm=o.name+" "+(o.parent?o.parent.name:""), ok=i===0?!/(Pelouse|Feuillage|Tronc|Haie|Gravier|Muret)/.test(nm):i===2?!/Socle/.test(nm):(/(^| )(N\d|Toit)/.test(nm)&&!/_clo|enseigne/.test(nm));
+            o.visible=ok; if(!ok)return; o.castShadow=true; o.receiveShadow=true; var m=o.material, mn=(m.name||"")+" "+nm; if(m.vertexColors)m.color.set(0xffffff);
+            if(/vitre|Verre|verre/.test(mn)){m.transparent=true;m.opacity=.42;m.depthWrite=false;o.castShadow=false;if(i===0)m.color.copy(C(0xA9C2CE))}
+            if(/Eau/.test(mn)){m.transparent=true;m.opacity=.72;m.color.copy(C(0x8FD3D8));m.roughness=.08;o.castShadow=false}
+            bb.expandByObject(o)});
+          var c=bb.getCenter(new THREE.Vector3()), z=bb.getSize(new THREE.Vector3()), R=Math.hypot(z.x,z.z)/2; if(i===0){c.set(6.1,0,3);R=14}
+          var k=Math.min(15.4/(R*1.08),30/z.y), w=new THREE.Group(), f=Math.max(.42,R*k*1.22/17);
+          root.position.x-=c.x; root.position.z-=c.z; if(i>0)root.position.y-=bb.min.y; w.add(root); w.scale.setScalar(k); piv.add(w); socle.scale.set(f,1,f); lis.scale.set(f,1,f);
+          var H=(i===1?z.y:bb.max.y)*k, dist=Math.max(74,H*2.9); if(i===2){cam.position.set(0,78,74);cam.lookAt(0,-2,0)}else{cam.position.set(0,H*.55+dist*.3,dist); cam.lookAt(0,H*.44-1.5,0)}})}).catch(function(){})})}
+    new IntersectionObserver(function(e){vu=e[0].isIntersecting;if(vu)init()},{rootMargin:"300px"}).observe(bx);
+    function tour(now){requestAnimationFrame(tour);if(!vu||!r2)return;var w=bx.clientWidth,h=bx.clientHeight,pr=r2.getPixelRatio();if(cvs.width!==Math.floor(w*pr)||cvs.height!==Math.floor(h*pr))r2.setSize(w,h,false);
+      S.forEach(function(k,i){var n=S.length, vw=mobile?w:w/n, vh=mobile?h/n:h, x=mobile?0:i*vw, y=mobile?(n-1-i)*vh:0; r2.setViewport(x,y,vw,vh); r2.setScissor(x,y,vw,vh); k.cam.aspect=vw/vh; k.cam.zoom=Math.min(1,vw/vh/1.3); k.cam.updateProjectionMatrix(); k.piv.rotation.y=now/1000*.32+i*1.7; r2.render(k.s,k.cam)})}
+    requestAnimationFrame(tour)})();
+  fetch("m/maison.gltf.json").then(function(r){return r.text()}).then(function(t){
+    new THREE.GLTFLoader().setMeshoptDecoder(MeshoptDecoder).parse(t,"",function(g){
+      var vus={};
+      g.scene.traverse(function(o){if(!o.isMesh)return;var nom=o.name, n=(o.material.name||nom).split("_")[0], m=o.material; o.castShadow=true; o.receiveShadow=true; o.userData.y0=o.position.y;
+        if(/^(Pelouse|Feuillage|Tronc|Haie|Gravier|Muret)$/.test(nom))SOL.push(o);
+        if(/_toit$/.test(nom)||nom==="Tuiles"||nom==="Charpente"||nom==="Zinc")toit.push(o); else if(/_haut$/.test(nom))etage.push(o);
+        if(vus[m.uuid])return; vus[m.uuid]=1; MATS[n]=m; m.envMapIntensity=.4; if(m.vertexColors)m.color.set(0xffffff);
+        if(n==="Verre"){m.transparent=true;m.opacity=.36;m.color.copy(C(0xA9C2CE));m.roughness=.03;m.metalness=.9;m.envMapIntensity=1.6;m.depthWrite=false;verre=m}
+        else if(n==="Eau"){m.transparent=true;m.opacity=.62;m.color.copy(C(0x8FD3D8));m.roughness=.04;m.metalness=.55;m.envMapIntensity=2.2;m.depthWrite=false}
+        else if(n==="Zinc"||n==="Laiton"){m.envMapIntensity=1.1}
+        else if(n==="Tuiles"){m.roughness=.58;m.envMapIntensity=.6}
+        else if(n==="Sanitaire"){m.envMapIntensity=.9}
+        if(DET[n])detail(m,n,DET[n]);
+      });
+      g.scene.traverse(function(o){if(!o.isMesh)return;var n=(o.material.name||"").split("_")[0];if(n==="Verre"){o.castShadow=false;o.renderOrder=3}else if(n==="Eau"){o.castShadow=false;o.renderOrder=2}else if(n==="Pelouse"){o.castShadow=false}});
+      flot.add(g.scene); decor(false); charge.hidden=true; taille(); lumiere(); requestAnimationFrame(boucle);
+    },panne);
+  }).catch(panne);
+})();
+</script>
+</html>
