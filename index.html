@@ -44,13 +44,13 @@ nav.top .wrap{ pointer-events:auto; display:flex; align-items:center; justify-co
 nav.top .btn{ padding:11px 18px; font-size:.92rem; background:var(--accent); border-color:var(--accent); color:var(--on-accent) }
 @media (max-width:1060px){ .onglets{ display:none } }
 /* héro : la maison en apesanteur sur un ciel de nuit */
-.hero3d{ position:relative; overflow:hidden; background:
+.hero3d{ position:relative; height:540vh; height:540svh; overflow:visible; overflow:clip }
+.hero3d::after{ content:""; position:absolute; inset:auto 0 0; height:120px; background:linear-gradient(0deg,var(--bg),rgba(10,12,19,0)); pointer-events:none }
+.scene{ position:sticky; top:0; height:100vh; height:100svh; overflow:hidden; background:
   radial-gradient(45% 55% at 72% 38%,rgba(75,55,201,.34) 0%,rgba(75,55,201,0) 70%),
   radial-gradient(38% 42% at 88% 78%,rgba(226,192,141,.16) 0%,rgba(226,192,141,0) 70%),
   radial-gradient(60% 60% at 10% 90%,rgba(32,58,110,.32) 0%,rgba(32,58,110,0) 70%),
   linear-gradient(180deg,#07080D 0%,var(--bg) 100%) }
-.hero3d::after{ content:""; position:absolute; inset:auto 0 0; height:120px; background:linear-gradient(0deg,var(--bg),rgba(10,12,19,0)); pointer-events:none }
-.scene{ position:relative; height:max(640px,min(100svh,980px)) }
 .scene canvas{ display:block; width:100%; height:100%; touch-action:pan-y; pointer-events:auto }
 .scene:fullscreen{ height:100%; background:var(--bg) }
 .explore .scene canvas{ touch-action:none; pointer-events:auto; cursor:grab }
@@ -58,21 +58,30 @@ nav.top .btn{ padding:11px 18px; font-size:.92rem; background:var(--accent); bor
 .scene .charge img{ width:min(620px,60vw); margin-top:8vh; opacity:.85; filter:drop-shadow(0 40px 50px rgba(0,0,0,.5)) }
 .scene .charge span{ position:absolute; bottom:28px; font-size:.9rem; color:var(--muted) }
 .scene .charge[hidden]{ display:grid; opacity:0; visibility:hidden; transition:opacity .8s ease, visibility 0s .8s }
-.accroche{ position:absolute; inset:0; z-index:2; pointer-events:none; transition:opacity .4s ease }
-.accroche .wrap{ height:100%; display:flex; flex-direction:column; justify-content:space-between; align-items:center; text-align:center; padding-top:clamp(110px,15vh,150px); padding-bottom:clamp(28px,5vh,52px) }
-.accroche .in{ display:grid; gap:18px; justify-items:center; pointer-events:auto }
-.accroche h1{ font-size:clamp(2.8rem,5.8vw,5.6rem); max-width:15ch }
-.accroche .lead{ color:#CFC9BE; max-width:52ch; font-size:1.05rem }
-.accroche .row{ display:flex; flex-wrap:wrap; gap:14px; align-items:center; justify-content:center }
+/* v14 — chapitres : le texte suit le défilement (remplace l'accroche fixe et les pastilles de verre de la v13) */
+.chaps{ position:absolute; inset:0; z-index:2; pointer-events:none; transition:opacity .4s ease }
+.chap{ position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; text-align:center; gap:16px; padding:clamp(100px,14vh,150px) 20px 0; opacity:0; visibility:hidden; transform:translateY(14px); transition:opacity .45s ease, transform .45s ease, visibility 0s .45s }
+.chap.on{ opacity:1; visibility:visible; transform:none; transition:opacity .45s ease, transform .45s ease }
+.chap h1,.chap h2{ font-size:clamp(2.5rem,5.6vw,5.4rem); font-weight:200; letter-spacing:-.05em; line-height:.95; max-width:20ch; text-shadow:0 2px 30px rgba(7,8,13,.75) }
+.chap p{ margin:0; color:#CFC9BE; max-width:56ch; font-size:1.05rem; text-shadow:0 1px 16px rgba(7,8,13,.9) }
+.chap .n{ font-size:.8rem; font-weight:500; letter-spacing:.16em; text-transform:uppercase; color:var(--accent) }
+.chap .row{ margin-top:auto; padding-bottom:clamp(84px,12vh,120px); display:flex; flex-wrap:wrap; gap:14px; align-items:center; justify-content:center; pointer-events:auto }
+.chap:not(.on) .row{ pointer-events:none }
+.chap .row .btn:not(.accent){ background:var(--verre); border-color:var(--line-2); backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px) }
+#horloge{ font-size:1.5rem; font-weight:400; color:var(--accent); font-variant-numeric:tabular-nums }
+.fil{ position:absolute; z-index:2; left:50%; bottom:26px; transform:translateX(-50%); display:flex; gap:22px; font-size:.82rem; color:rgba(243,239,232,.42); pointer-events:none; white-space:nowrap; padding-bottom:10px; transition:opacity .4s ease }
+.fil span{ transition:color .3s ease } .fil span.on{ color:var(--fg) }
+.fil i{ position:absolute; left:0; right:0; bottom:0; height:2px; border-radius:2px; background:var(--line) }
+.fil i::after{ content:""; position:absolute; inset:0; border-radius:2px; background:var(--accent); transform-origin:0 50%; transform:scaleX(var(--p,0)) }
 .pastille{ display:inline-flex; align-items:center; gap:10px; font-size:.9rem; font-weight:400; padding:8px 16px 8px 12px; border-radius:999px; background:var(--verre); border:1px solid var(--line); backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px); width:max-content; max-width:100% }
 .pastille i{ width:7px; height:7px; border-radius:50%; background:var(--accent); box-shadow:0 0 0 0 rgba(226,192,141,.6); animation:pouls 2.4s infinite }
 @keyframes pouls{ to{ box-shadow:0 0 0 9px rgba(226,192,141,0) } }
-/* pastilles de verre autour de la maison */
-.verre{ position:absolute; z-index:1; display:grid; gap:2px; padding:13px 18px; border-radius:18px; background:var(--verre); border:1px solid var(--line); backdrop-filter:blur(16px) saturate(1.2); -webkit-backdrop-filter:blur(16px) saturate(1.2); font-weight:500; font-size:.95rem; pointer-events:none; box-shadow:0 30px 60px -30px rgba(0,0,0,.7); transition:opacity .4s ease; animation:flotte 8s ease-in-out infinite }
-.verre small{ font-weight:300; font-size:.84rem; color:var(--muted) }
-.verre.v1{ left:7%; top:44% } .verre.v2{ right:7%; top:38%; animation-delay:-3s } .verre.v3{ right:13%; bottom:27%; animation-delay:-5s }
-@keyframes flotte{ 50%{ transform:translateY(-8px) } }
-.explore .accroche,.explore .verre{ opacity:0; pointer-events:none } .explore .accroche .in{ pointer-events:none }
+/* bouton Explorer toujours sous la main pendant le défilement */
+.voir{ position:fixed; z-index:29; right:24px; bottom:calc(env(safe-area-inset-bottom,0px) + 22px); padding:16px 28px; font-size:1.05rem; font-weight:600; background:var(--accent); border-color:var(--accent); color:var(--on-accent); box-shadow:0 10px 34px rgba(0,0,0,.5), 0 0 0 0 rgba(226,192,141,.55); animation:voirPouls 2.6s ease-out infinite; transition:opacity .4s ease, transform .2s ease }
+.voir:hover{ transform:scale(1.04) }
+@keyframes voirPouls{ 0%{ box-shadow:0 10px 34px rgba(0,0,0,.5), 0 0 0 0 rgba(226,192,141,.55) } 70%,100%{ box-shadow:0 10px 34px rgba(0,0,0,.5), 0 0 0 18px rgba(226,192,141,0) } }
+@media (prefers-reduced-motion:reduce){ .voir{ animation:none } }
+.explore .chaps,.explore .fil,.voir.off{ opacity:0; visibility:hidden }
 .hud{ position:absolute; z-index:3; left:16px; right:16px; display:none; flex-wrap:wrap; gap:8px; align-items:center; justify-content:space-between; pointer-events:none }
 .explore .hud{ display:flex }
 .hud.haut{ top:88px } .hud.bas{ bottom:18px }
@@ -90,9 +99,7 @@ nav.top .btn{ padding:11px 18px; font-size:.92rem; background:var(--accent); bor
 .palette button{ width:26px; height:26px; border-radius:50%; border:2px solid rgba(243,239,232,.25); cursor:pointer; padding:0 }
 .palette button[aria-pressed="true"]{ border-color:var(--accent); box-shadow:0 0 0 2px rgba(226,192,141,.3) }
 @media (max-width:760px){
-  .scene{ height:44svh; min-height:340px } .verre{ display:none } .explore .scene{ height:88svh }
-  .scene .charge img{ margin-left:0; width:86vw }
-  .accroche{ position:relative } .accroche .wrap{ height:auto; justify-content:flex-start; padding-block:8px 40px; gap:26px } .explore .accroche{ display:none }
+  .voir{ right:50%; transform:translateX(50%); bottom:calc(env(safe-area-inset-bottom,0px) + 52px); padding:13px 22px; font-size:.95rem; white-space:nowrap } .voir:hover{ transform:translateX(50%) } .fil{ gap:13px; font-size:.74rem; bottom:18px } .chap .row{ padding-bottom:72px }
   .palette{ top:auto; bottom:128px } .hud.haut{ top:84px }
 }
 figure{ margin:0 }
@@ -230,13 +237,20 @@ footer.pied{ color:var(--muted); margin-top:clamp(64px,8vw,112px); font-size:.95
   <a class="btn" href="#contact">Envoyer mes plans</a>
 </div></nav>
 
+<button class="btn voir" id="voir" type="button" data-explorer="1">Explorer la maison en 3D →</button>
 <header class="hero3d" id="accueil">
   <div class="scene" id="scene">
     <canvas id="gl" aria-label="Maquette 3D de la maison"></canvas>
     <div class="charge" id="charge"><img src="m/flottant.png" alt=""><span>Chargement de la maquette…</span></div>
-    <div class="verre v1">Toit retirable<small>Chaque pièce meublée</small></div>
-    <div class="verre v2">Soleil réel<small>Heure par heure</small></div>
-    <div class="verre v3">Visite à pied<small>À hauteur d’yeux</small></div>
+    <div class="chaps" id="chaps">
+      <div class="chap on" data-a="-1" data-b=".085"><h1>Votre bien en 3D, avant même la visite.</h1><p>Vous m’envoyez vos plans. Je vous renvoie une ébauche en 3D.</p><span class="pastille"><i></i>Faites défiler</span></div>
+      <div class="chap" data-a=".1" data-b=".31"><span class="n">01 · Le plan</span><h2>Tout part de vos plans.</h2><p>Les murs montent, pièce par pièce.</p></div>
+      <div class="chap" data-a=".325" data-b=".52"><span class="n">02 · La maison</span><h2>Le bien prend forme.</h2><p>Toiture, façades, terrasse, bassin.</p></div>
+      <div class="chap" data-a=".535" data-b=".76"><span class="n">03 · L’intérieur</span><h2>Le toit s’ouvre.<br>Dix pièces meublées.</h2><p>Du salon à la cuisine, jusqu’au bassin.</p></div>
+      <div class="chap" data-a=".775" data-b=".92"><span class="n">04 · La lumière</span><h2>Le soleil tourne. Heure par heure.</h2><p id="horloge">10 h 00</p></div>
+      <div class="chap" data-a=".935" data-b="2"><h2>Envoyez vos plans.<br>Recevez une ébauche.</h2><div class="row"><button class="btn accent" type="button" data-explorer="1">Explorer la maison</button><a class="btn" href="#contact">Envoyer mes plans</a></div></div>
+    </div>
+    <div class="fil" id="fil" aria-hidden="true"><span>Plan</span><span>Volumes</span><span>Maison</span><span>Intérieur</span><span>Lumière</span><i></i></div>
     <div class="hud haut">
       <div class="groupe" role="group" aria-label="Niveaux visibles" id="coupes"><button data-coupe="0" aria-pressed="true">Maison entière</button><button data-coupe="1" aria-pressed="false">Sans le toit</button><button data-coupe="2" aria-pressed="false">Rez-de-chaussée</button></div>
       <div class="groupe"><button id="plein" type="button">Plein écran</button><button type="button" data-explorer="0">Fermer</button></div>
@@ -247,14 +261,9 @@ footer.pied{ color:var(--muted); margin-top:clamp(64px,8vw,112px); font-size:.95
     </div>
     <div class="hud bas">
       <div class="groupe" role="group" aria-label="Points de vue" id="vues"><button data-vue="jardin" aria-pressed="true">Jardin</button><button data-vue="ciel" aria-pressed="false">Du ciel</button><button data-vue="bassin" aria-pressed="false">Bassin</button><button data-vue="entree" aria-pressed="false">Entrée</button></div>
-      <div class="soleil"><button type="button" id="jouer" aria-label="Faire défiler la journée">▶</button><input type="range" id="heure" min="5" max="23" step="0.05" value="19.7" aria-label="Heure de la journée"><b id="heuretxt">19 h 42</b></div>
+      <div class="soleil"><button type="button" id="jouer" aria-label="Faire défiler la journée">▶</button><input type="range" id="heure" min="5" max="23" step="0.05" value="10" aria-label="Heure de la journée"><b id="heuretxt">10 h 00</b></div>
     </div>
   </div>
-  <div class="accroche"><div class="wrap">
-    <div class="in"><h1>Votre bien en 3D, avant même la visite.</h1><p class="lead">Vous m’envoyez vos plans. Je vous renvoie une ébauche en 3D.</p></div>
-    <div class="in bas">
-    <div class="row"><button class="btn accent" type="button" data-explorer="1">Explorer la maison</button><a class="btn ghost" href="#contact">Envoyer mes plans</a></div></div>
-  </div></div>
 </header>
 <div class="defile" aria-label="Pour les Agents immobiliers, Architectes, Promoteurs, Marchands de biens, Propriétaires, Investisseurs, Architectes d’intérieur, Constructeurs de maisons"><div aria-hidden="true"><span>Agents immobiliers</span><span>Architectes</span><span>Promoteurs</span><span>Marchands de biens</span><span>Propriétaires</span><span>Investisseurs</span><span>Architectes d’intérieur</span><span>Constructeurs de maisons</span><span>Agents immobiliers</span><span>Architectes</span><span>Promoteurs</span><span>Marchands de biens</span><span>Propriétaires</span><span>Investisseurs</span><span>Architectes d’intérieur</span><span>Constructeurs de maisons</span></div></div>
 
@@ -460,12 +469,12 @@ footer.pied{ color:var(--muted); margin-top:clamp(64px,8vw,112px); font-size:.95
   rd.shadowMap.enabled=true; rd.shadowMap.type=THREE.PCFSoftShadowMap;
   var sc=new THREE.Scene(); sc.fog=new THREE.Fog(0xCFE3F2,90,330);
   var cam=new THREE.PerspectiveCamera(34,16/9,.3,900), ctl=new THREE.OrbitControls(cam,cv);
-  ctl.enableDamping=true; ctl.dampingFactor=.08; ctl.minDistance=5; ctl.maxDistance=80; ctl.maxPolarAngle=Math.PI/2-.03; ctl.enablePan=false; ctl.autoRotate=true; ctl.autoRotateSpeed=.6;
+  ctl.enableDamping=true; ctl.dampingFactor=.08; ctl.minDistance=5; ctl.maxDistance=80; ctl.maxPolarAngle=Math.PI/2-.03; ctl.enablePan=false;
   var VUES={flotte:[[-37.7,22.1,47.8],[6.2,2.6,3]],flotteM:[[-30,23,42],[6.2,1.4,3]],hero:[[-19,8,29],[6.5,2.6,2.5]],jardin:[[-14,5.5,24],[6.5,2.6,2.5]],ciel:[[-10,34,26],[6.5,0,3]],bassin:[[-4.2,1.5,15.2],[9,2.2,2]],entree:[[9,3.2,-30],[7,3,-4]],dedans:[[-3,27,19],[7,1.5,1.5]]};
   var visee=null;
   function pose(n,doux){var v=VUES[n];if(!doux){cam.position.set.apply(cam.position,v[0]);ctl.target.set.apply(ctl.target,v[1]);ctl.update();return}
     visee={p:new THREE.Vector3().fromArray(v[0]),t:new THREE.Vector3().fromArray(v[1]),k:0}}
-  ctl.enabled=!mobile; ctl.enableZoom=false; cv.style.cursor=mobile?"pointer":"grab"; cv.style.touchAction=mobile?"pan-y":"none"; pose(mobile?"flotteM":"flotte");
+  ctl.enabled=false; ctl.enableZoom=false; cv.style.cursor="grab"; cv.style.touchAction="pan-y";
   function C(h){return new THREE.Color(h).convertSRGBToLinear()}
   function mel(a,b,t){return a.clone().lerp(b,t)}
   function lisse(a,b,x){var t=Math.min(1,Math.max(0,(x-a)/(b-a)));return t*t*(3-2*t)}
@@ -492,12 +501,12 @@ footer.pied{ color:var(--muted); margin-top:clamp(64px,8vw,112px); font-size:.95
   var piscine=new THREE.PointLight(0x66E0E6,0,14,2); piscine.position.set(3,-.6,9.6); sc.add(piscine);
 
   // matières : détail procédural + eau animée
-  var U={t:{value:0},jour:{value:1},nuit:{value:0}};
+  var U={t:{value:0},jour:{value:1},nuit:{value:0},blanc:{value:1}};
   var BRUIT="float h21(vec2 p){p=fract(p*vec2(123.34,456.21));p+=dot(p,p+45.32);return fract(p.x*p.y);}float vn(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(h21(i),h21(i+vec2(1.,0.)),f.x),mix(h21(i+vec2(0.,1.)),h21(i+vec2(1.,1.)),f.x),f.y);}";
-  function detail(m,cle,o){m.onBeforeCompile=function(sh){sh.uniforms.uT=U.t;sh.uniforms.uJour=U.jour;sh.uniforms.uNuit=U.nuit;
+  function detail(m,cle,o){m.onBeforeCompile=function(sh){sh.uniforms.uT=U.t;sh.uniforms.uJour=U.jour;sh.uniforms.uNuit=U.nuit;sh.uniforms.uBlanc=U.blanc;
       sh.vertexShader=sh.vertexShader.replace("#include <common>","#include <common>\nvarying vec3 vWp;").replace("#include <project_vertex>","#include <project_vertex>\nvWp=(modelMatrix*vec4(transformed,1.)).xyz;");
-      var f=sh.fragmentShader.replace("#include <common>","#include <common>\nvarying vec3 vWp;uniform float uT;uniform float uJour;uniform float uNuit;\n"+BRUIT);
-      if(o.couleur)f=f.replace("#include <color_fragment>","#include <color_fragment>\n"+o.couleur);
+      var f=sh.fragmentShader.replace("#include <common>","#include <common>\nvarying vec3 vWp;uniform float uT;uniform float uJour;uniform float uNuit;uniform float uBlanc;\n"+BRUIT);
+      f=f.replace("#include <color_fragment>","#include <color_fragment>\n"+(o.couleur||"")+"\ndiffuseColor.rgb=mix(diffuseColor.rgb,vec3(.82,.81,.78),uBlanc);");
       if(o.normale)f=f.replace("#include <normal_fragment_maps>","#include <normal_fragment_maps>\n"+o.normale);
       if(o.lueur)f=f.replace("#include <emissivemap_fragment>","#include <emissivemap_fragment>\n"+o.lueur);
       sh.fragmentShader=f};
@@ -527,7 +536,7 @@ footer.pied{ color:var(--muted); margin-top:clamp(64px,8vw,112px); font-size:.95
     var t=new THREE.CubeTexture([s,s,face(A,A),face("#4E5A44","#4E5A44"),s,s]); t.needsUpdate=true; t.encoding=THREE.sRGBEncoding;
     var n=pm.fromCubemap(t).texture; sc.environment=n; if(envT)envT.dispose(); envT=n; t.dispose()}
 
-  var heure=document.getElementById("heure"), htxt=document.getElementById("heuretxt"), jouer=document.getElementById("jouer"), lecture=false;
+  var heure=document.getElementById("heure"), htxt=document.getElementById("heuretxt"), jouer=document.getElementById("jouer"), hor=document.getElementById("horloge"), lecture=false;
   var NUIT_H=C(0x060A1A), OR_H=C(0x35589A), JOUR_H=C(0x3A82D8), NUIT_B=C(0x131A33), OR_B=C(0xF2A064), JOUR_B=C(0xCFE3F2), SOL_J=C(0x6E7A5E), SOL_N=C(0x0A0D12);
   function lumiere(){var h=parseFloat(heure.value), a=(h-6.5)/14*Math.PI, el=Math.sin(a), jour=lisse(-.07,.2,el), plein=lisse(.08,.55,el), nuit=1-jour;
     var haut=mel(NUIT_H,mel(OR_H,JOUR_H,plein),jour), bas=mel(NUIT_B,mel(OR_B,JOUR_B,plein),jour);
@@ -539,43 +548,95 @@ footer.pied{ color:var(--muted); margin-top:clamp(64px,8vw,112px); font-size:.95
     rd.toneMappingExposure=.82+.12*jour; U.jour.value=jour; U.nuit.value=nuit;
     LAMPES.forEach(function(p){p.intensity=nuit*1.7}); piscine.intensity=nuit*1.4;
     if(verre){verre.emissive.copy(C(0xFFB96B)); verre.emissiveIntensity=nuit*.75; verre.opacity=.36+.3*nuit}
-    env(h,haut,bas); var hh=Math.floor(h+1e-6), mm=Math.round((h-hh)*60); if(mm===60){hh++;mm=0} htxt.textContent=hh+" h "+("0"+mm).slice(-2)}
+    env(h,haut,bas); var hh=Math.floor(h+1e-6), mm=Math.round((h-hh)*60); if(mm===60){hh++;mm=0} htxt.textContent=hor.textContent=hh+" h "+("0"+mm).slice(-2)}
   heure.addEventListener("input",function(){lecture=false;jouer.textContent="▶";lumiere()});
   jouer.addEventListener("click",function(){lecture=!lecture;jouer.textContent=lecture?"❚❚":"▶"});
 
   // niveaux : le toit puis l'étage se soulèvent
   var coupe=0, kT=0, kE=0;
   function presse(id,b){[].forEach.call(document.querySelectorAll("#"+id+" button"),function(x){x.setAttribute("aria-pressed",x===b?"true":"false")})}
-  [].forEach.call(document.querySelectorAll("#coupes button"),function(b){b.addEventListener("click",function(){coupe=+b.dataset.coupe;presse("coupes",b);ctl.autoRotate=false;if(coupe>0)pose("dedans",true);else pose("jardin",true)})});
-  [].forEach.call(document.querySelectorAll("#vues button"),function(b){b.addEventListener("click",function(){ctl.autoRotate=false;pose(b.dataset.vue,true);presse("vues",b)})});
-  var tap=null, reprise=0;
-  cv.addEventListener("click",function(){if(mobile&&!hero.classList.contains("explore"))explorer(true)});
-  cv.addEventListener("pointerdown",function(e){ctl.autoRotate=false;visee=null;tap=[e.clientX,e.clientY];if(!mobile)cv.style.cursor="grabbing"});
-  cv.addEventListener("pointerup",function(e){if(!mobile)cv.style.cursor="grab";var ex=hero.classList.contains("explore");clearTimeout(reprise);if(!ex)reprise=setTimeout(function(){if(!hero.classList.contains("explore"))ctl.autoRotate=true},3000)});
+  [].forEach.call(document.querySelectorAll("#coupes button"),function(b){b.addEventListener("click",function(){coupe=+b.dataset.coupe;presse("coupes",b);if(coupe>0)pose("dedans",true);else pose("jardin",true)})});
+  [].forEach.call(document.querySelectorAll("#vues button"),function(b){b.addEventListener("click",function(){pose(b.dataset.vue,true);presse("vues",b)})});
+  // défilement : chaque étape règle la caméra, la hauteur des murs, le toit, l'étage, la maquette blanche, le plan et l'heure
+  //        p    az  incl dist   cible          murs toit étage blanc plan heure
+  var KEYS=[[0,    0,   2, 80,  6.75,0,2.75,    .02, 1, 1, 1, 1, 10],
+            [.07,  0,   2, 80,  6.75,0,2.75,    .02, 1, 1, 1, 1, 10],
+            [.2, -25,  50, 54,  6.5,1.5,2.75,   1,   1, 1, 1, 1, 10],
+            [.3, -44,  66, 54,  6.2,2.6,3,      1,   1, 0, 1, 1, 10],
+            [.38,-70,  70, 52,  6.2,2.6,3,      1,   0, 0, 1, 1, 10],
+            [.43,-90,  71, 52,  6.2,2.6,3,      1,   0, 0, .6, 0, 10],
+            [.48,-110, 72.7,52,  6.2,2.6,3,     1,   0, 0, 0, 0, 10],
+            [.52,-120, 72.7,52,  6.2,2.6,3,     1,   0, 0, 0, 0, 10],
+            [.57,-70,  48, 48,  7,4,1.5,        1,   1, 0, 0, 0, 10],
+            [.62,-40,  40, 42,  7,2,1.5,        1,   1, 1, 0, 0, 10],
+            // survol : salon, cuisine, bassin
+            [.66,-15,  36, 27,  3.5,5,-3,       1,   1, 1, 0, 0, 10],
+            [.7, -55,  40, 26,  11.3,5,2,       1,   1, 1, 0, 0, 10],
+            [.735,-95, 62, 27,  4,3,8,          1,   1, 1, 0, 0, 10],
+            [.78,-44,  72.7,52,  6.2,2.6,3,     1,   0, 0, 0, 0, 10],
+            [.9, -20,  72.7,52,  6.2,2.6,3,     1,   0, 0, 0, 0, 19.7],
+            [1,  -44,  72.7,52,  6.2,2.6,3,     1,   0, 0, 0, 0, 19.7]];
+  // caméra : courbe continue d'une étape à l'autre (pas d'arrêt à chaque clé) ; une valeur tenue reste tenue
+  function pente(i,j){var K=KEYS;if(i<=0||i>=K.length-1||K[i-1][j]===K[i][j]||K[i+1][j]===K[i][j])return 0;return (K[i+1][j]-K[i-1][j])/(K[i+1][0]-K[i-1][0])}
+  function etat(p){var i=1;while(i<KEYS.length-1&&p>KEYS[i][0])i++;var a=KEYS[i-1],b=KEYS[i],h=b[0]-a[0],t=Math.min(1,Math.max(0,(p-a[0])/h)),t2=t*t,t3=t2*t,s=3*t2-2*t3,o=[];
+    for(var j=1;j<13;j++)o.push(j>6?a[j]+(b[j]-a[j])*s:(1-s)*a[j]+(t3-2*t2+t)*h*pente(i-1,j)+s*b[j]+(t3-t2)*h*pente(i,j));
+    o[1]=Math.max(1.5,o[1]);return o}
+  var CHAPS=[].slice.call(document.querySelectorAll("#chaps .chap")), FIL=document.getElementById("fil"), FILS=[].slice.call(FIL.querySelectorAll("span")), SEUILS=[0,.1,.3,.52,.76];
+  function avance(){var r=hero.getBoundingClientRect(), p=Math.min(1,Math.max(0,-r.top/Math.max(1,r.height-innerHeight)));
+    CHAPS.forEach(function(c){c.classList.toggle("on",p>=+c.dataset.a&&p<=+c.dataset.b)});
+    var k=0;SEUILS.forEach(function(s,i){if(p>=s)k=i});FILS.forEach(function(s,i){s.classList.toggle("on",i===k)});FIL.style.setProperty("--p",p);return p}
+  addEventListener("scroll",avance,{passive:true}); avance();
+  var cur=etat(0), fz=1, qual=1, nf=0, sdt=0, tourne=0, prise=null;
+  function depuisCam(){var v=cam.position.clone().sub(ctl.target), d=v.length();tourne=0;cur[0]=Math.atan2(v.x,v.z)*180/Math.PI;cur[1]=Math.acos(v.y/d)*180/Math.PI;cur[2]=d/fz;cur[3]=ctl.target.x;cur[4]=ctl.target.y;cur[5]=ctl.target.z;cur[11]=parseFloat(heure.value)}
+  cv.addEventListener("click",function(){if(mobile&&!hero.classList.contains("explore")&&avance()>.93)explorer(true)});
+  cv.addEventListener("pointerdown",function(e){visee=null;if(hero.classList.contains("explore"))return;prise=e.clientX;cv.style.cursor="grabbing"});
+  addEventListener("pointermove",function(e){if(prise===null)return;tourne-=(e.clientX-prise)*.25;prise=e.clientX});
+  function lache(){if(prise!==null){prise=null;cv.style.cursor="grab"}} addEventListener("pointerup",lache); addEventListener("pointercancel",lache);
+  // le plan : la feuille d'où sortent les murs (34 px du dessin = 1 m)
+  var feuille=new THREE.Mesh(new THREE.PlaneGeometry(22.5,24.5),new THREE.MeshStandardMaterial({color:0xFBFAF6,roughness:1,transparent:true}));
+  feuille.rotation.x=-Math.PI/2; feuille.position.set(6.75,.06,2.75); feuille.receiveShadow=true; feuille.renderOrder=1; sc.add(feuille);
+  // le bureau en noyer sous le plan : veinage procédural, bords fondus dans la nuit, halo d'ombre autour de la feuille
+  var bureau=new THREE.Mesh(new THREE.PlaneGeometry(160,160),new THREE.ShaderMaterial({transparent:true,depthWrite:false,uniforms:{o:{value:1}},
+    vertexShader:"varying vec2 vP;void main(){vP=position.xy;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}",
+    fragmentShader:"uniform float o;varying vec2 vP;"+BRUIT+"void main(){vec2 p=vP;float w=vn(p*.12)*4.;float g=vn(vec2(p.x*.22+w,p.y*5.));float f=vn(vec2(p.x*.05,p.y*.7+w));"+
+      "vec3 c=mix(vec3(.105,.058,.034),vec3(.30,.18,.10),g*.55+f*.45);c*=.8+.2*smoothstep(.0,.06,abs(fract(p.y/11.+.5)-.5));"+
+      "float d=length(max(abs(p-vec2(.5,-.7))-vec2(11.25,12.25),0.));c*=mix(.42,1.,smoothstep(0.,3.2,d));"+
+      "float r=length(p);c*=1.-.55*smoothstep(12.,40.,r);gl_FragColor=vec4(c,o*(1.-smoothstep(26.,62.,r)));}"}));
+  bureau.rotation.x=-Math.PI/2; bureau.position.set(6.75,-.06,2.75); bureau.renderOrder=-1; sc.add(bureau);
+  fetch("m/plan.svg").then(function(r){return r.text()}).then(function(t){var im=new Image();im.onload=function(){var x=new THREE.Texture(im);x.encoding=THREE.sRGBEncoding;x.anisotropy=rd.capabilities.getMaxAnisotropy();x.needsUpdate=true;feuille.material.color.set(0xffffff);feuille.material.map=x;feuille.material.emissiveMap=x;feuille.material.emissive.set(0x34322E);feuille.material.needsUpdate=true};
+    im.src=URL.createObjectURL(new Blob([t.replace("<svg ",'<svg width="2295" height="2499" ')],{type:"image/svg+xml"}))}).catch(function(){});
   var SOL=[], flot=new THREE.Group(), ombre=new THREE.Mesh(new THREE.PlaneGeometry(70,70),new THREE.ShadowMaterial({opacity:.42,depthWrite:false}));
   ombre.material.onBeforeCompile=function(sh){sh.vertexShader=sh.vertexShader.replace("#include <common>","#include <common>\nvarying vec2 vP;").replace("#include <begin_vertex>","#include <begin_vertex>\nvP=position.xy;");sh.fragmentShader=sh.fragmentShader.replace("#include <common>","#include <common>\nvarying vec2 vP;").replace("#include <tonemapping_fragment>","gl_FragColor.a*=1.-smoothstep(10.,30.,length(vP));\n#include <tonemapping_fragment>")};
   ombre.rotation.x=-Math.PI/2; ombre.position.set(6,-.02,3); ombre.receiveShadow=true; sc.add(ombre); sc.add(flot);
   function decor(on){dome.visible=on; SOL.forEach(function(o){o.visible=on}); ombre.visible=!on}
-  function explorer(on){hero.classList.toggle("explore",on);ctl.enabled=on||!mobile;ctl.enableZoom=on;cv.style.cursor=on?"grab":(mobile?"pointer":"grab");cv.style.touchAction=on||!mobile?"none":"pan-y";decor(on);taille();
-    if(on){ctl.autoRotate=false;pose("jardin",true);presse("vues",document.querySelector("#vues button"))}
-    else{coupe=0;presse("coupes",document.querySelector("#coupes button"));lecture=false;jouer.textContent="▶";ctl.autoRotate=true;pose(mobile?"flotteM":"flotte",true);if(document.fullscreenElement)try{document.exitFullscreen()}catch(e){}}}
-  [].forEach.call(document.querySelectorAll("[data-explorer]"),function(b){b.addEventListener("click",function(){var on=b.dataset.explorer==="1";explorer(on);if(on)hero.scrollIntoView({behavior:"smooth",block:"start"})})});
+  function explorer(on){if(on){var fin=hero.offsetTop+hero.offsetHeight-innerHeight;if(scrollY>fin)scrollTo(0,fin)}
+    hero.classList.toggle("explore",on);document.getElementById("voir").classList.toggle("off",on);document.documentElement.style.overflow=on?"hidden":"";ctl.enabled=on;ctl.enableZoom=on;cv.style.touchAction=on?"none":"pan-y";decor(on);taille();
+    if(on){pose("jardin",true);presse("vues",document.querySelector("#vues button"))}
+    else{coupe=0;presse("coupes",document.querySelector("#coupes button"));lecture=false;jouer.textContent="▶";visee=null;depuisCam();if(document.fullscreenElement)try{document.exitFullscreen()}catch(e){}}}
+  [].forEach.call(document.querySelectorAll("[data-explorer]"),function(b){b.addEventListener("click",function(){explorer(b.dataset.explorer==="1")})});
   document.getElementById("plein").addEventListener("click",function(){try{if(document.fullscreenElement)document.exitFullscreen();else{var r=box.requestFullscreen&&box.requestFullscreen();if(r&&r.catch)r.catch(function(){})}}catch(e){}});
   [].forEach.call(document.querySelectorAll("#palette div"),function(d){[].forEach.call(d.querySelectorAll("button"),function(b){b.addEventListener("click",function(){var m=MATS[d.dataset.mat];if(m)m.color.copy(C(b.dataset.c));
     [].forEach.call(d.querySelectorAll("button"),function(x){x.setAttribute("aria-pressed",x===b?"true":"false")})})})});
-  function taille(){var w=box.clientWidth,h=box.clientHeight;if(!w||!h)return;rd.setPixelRatio(Math.min(mobile?2:3,Math.max(devicePixelRatio||1,Math.sqrt(9e6/(w*h)))));rd.setSize(w,h,false);cam.aspect=w/h;if(!hero.classList.contains("explore"))cam.setViewOffset(w,h,0,-h*(mobile?.12:.18),w,h);else cam.clearViewOffset();cam.updateProjectionMatrix()}
+  function taille(){var w=box.clientWidth,h=box.clientHeight;if(!w||!h)return;rd.setPixelRatio(Math.min(mobile?2:3,Math.max(1,Math.max(devicePixelRatio||1,Math.sqrt(9e6/(w*h)))*Math.sqrt(qual))));rd.setSize(w,h,false);cam.aspect=w/h;fz=Math.max(1,.66*h/w);if(!hero.classList.contains("explore"))cam.setViewOffset(w,h,0,-h*(mobile?.12:.18),w,h);else cam.clearViewOffset();cam.updateProjectionMatrix()}
   window.addEventListener("resize",taille); document.addEventListener("fullscreenchange",function(){setTimeout(taille,60)});
   var visible=true; if(window.IntersectionObserver)new IntersectionObserver(function(e){visible=e[0].isIntersecting},{rootMargin:"150px"}).observe(box);
   var t0=performance.now(), tp=t0;
   function boucle(now){requestAnimationFrame(boucle);if(!visible)return;var dt=Math.min(.1,(now-tp)/1000);tp=now;U.t.value=(now-t0)/1000;
+    sdt+=dt;if(++nf===40){if(sdt/40>.025&&qual>.2){qual*=.65;taille()}nf=0;sdt=0} // machine qui peine : on rend moins de pixels, pas moins d'images
     if(lecture){var h=parseFloat(heure.value)+dt*1.6;if(h>23)h=5;heure.value=h;lumiere()}
-    if(visee){visee.k=Math.min(1,visee.k+dt*1.4);var e=1-Math.pow(1-visee.k,3);cam.position.lerp(visee.p,e*.14+.02);ctl.target.lerp(visee.t,e*.14+.02);if(visee.k>=1&&cam.position.distanceTo(visee.p)<.05)visee=null}
-    var ex=hero.classList.contains("explore"), cyc=(U.t.value%13)/13, ouv=lisse(.1,.24,cyc)-lisse(.7,.84,cyc);
-    var cT=ex?(coupe>=1?1:0):ouv*.36, cE=ex?(coupe>=2?1:0):ouv*.2; kT+=(cT-kT)*Math.min(1,dt*5); kE+=(cE-kE)*Math.min(1,dt*5);
+    var ex=hero.classList.contains("explore"), c=etat(avance()), k=Math.min(1,dt*5), j;
+    if(ex){c=cur.slice();c[6]=1;c[7]=coupe>=1?1:0;c[8]=coupe>=2?1:0;c[9]=0;c[10]=0}
+    for(j=0;j<12;j++)cur[j]+=(c[j]-cur[j])*k;
+    if(prise===null)tourne*=Math.exp(-dt*.9);
+    kT=cur[7]; kE=cur[8]; flot.scale.y=cur[6]; U.blanc.value=cur[9]; feuille.material.opacity=cur[10]; feuille.visible=bureau.visible=cur[10]>.01;bureau.material.uniforms.o.value=cur[10];
+    if(ex){if(visee){visee.k=Math.min(1,visee.k+dt*1.4);var e=1-Math.pow(1-visee.k,3);cam.position.lerp(visee.p,e*.14+.02);ctl.target.lerp(visee.t,e*.14+.02);if(visee.k>=1&&cam.position.distanceTo(visee.p)<.05)visee=null} ctl.update()}
+    else{var az=(cur[0]+tourne+Math.sin(U.t.value*.2)*5*(1-cur[10]))*Math.PI/180, po=cur[1]*Math.PI/180, d=cur[2]*fz;
+      ctl.target.set(cur[3],cur[4],cur[5]); cam.position.set(cur[3]+d*Math.sin(po)*Math.sin(az),cur[4]+d*Math.cos(po),cur[5]+d*Math.sin(po)*Math.cos(az)); cam.lookAt(ctl.target);
+      if(Math.abs(cur[11]-parseFloat(heure.value))>.02){heure.value=cur[11];lumiere()}}
     toit.forEach(function(o){o.position.y=o.userData.y0+kT*kT*22;o.visible=kT<.97&&(o.name!=="Zinc"||kT<.02)}); etage.forEach(function(o){o.position.y=o.userData.y0+kE*kE*22;o.visible=kE<.97});
     LAMPES.forEach(function(p){if(p.userData.haut)p.visible=kE<.5});
-    flot.position.y+=((ex?0:.35+Math.sin(U.t.value*.7)*.35)-flot.position.y)*Math.min(1,dt*3);
-    dome.position.copy(cam.position); ctl.update(); rd.render(sc,cam)}
+    flot.position.y+=((ex?0:(1-cur[10])*(.35+Math.sin(U.t.value*.7)*.35))-flot.position.y)*Math.min(1,dt*3);
+    dome.position.copy(cam.position); rd.render(sc,cam)}
 
   // vitrine : la maison et l'immeuble, chacun sur un socle qui tourne (un seul canevas, deux vues)
   (function(){var cvs=document.getElementById("vitrine"), bx=document.getElementById("vitrinebox"); if(!cvs||!window.IntersectionObserver)return; var r2=null, vu=false, S=[];
@@ -612,7 +673,7 @@ footer.pied{ color:var(--muted); margin-top:clamp(64px,8vw,112px); font-size:.95
         else if(n==="Zinc"||n==="Laiton"){m.envMapIntensity=1.1}
         else if(n==="Tuiles"){m.roughness=.58;m.envMapIntensity=.6}
         else if(n==="Sanitaire"){m.envMapIntensity=.9}
-        if(DET[n])detail(m,n,DET[n]);
+        detail(m,DET[n]?n:"std",DET[n]||{});
       });
       g.scene.traverse(function(o){if(!o.isMesh)return;var n=(o.material.name||"").split("_")[0];if(n==="Verre"){o.castShadow=false;o.renderOrder=3}else if(n==="Eau"){o.castShadow=false;o.renderOrder=2}else if(n==="Pelouse"){o.castShadow=false}});
       flot.add(g.scene); decor(false); charge.hidden=true; taille(); lumiere(); requestAnimationFrame(boucle);
