@@ -106,6 +106,13 @@ figure{ margin:0 }
 .plein{ border-radius:var(--r); overflow:hidden; background:var(--bg-2); position:relative }
 .plein img{ display:block; width:100%; height:auto; transition:transform 1s cubic-bezier(.2,.7,.2,1) }
 .plein:hover img{ transform:scale(1.025) }
+/* v15 — du plan à la photo : plan, maquette, rendu photoréaliste côte à côte */
+.trio{ display:grid; grid-template-columns:minmax(0,1fr) minmax(0,2.25fr); gap:14px; margin:0 0 clamp(36px,4.6vw,64px) }
+.trio figure{ margin:0 } .trio .vue{ display:block; aspect-ratio:16/10; border-radius:var(--r); overflow:hidden; border:1px solid var(--line); background:#FBFAF6 }
+.trio img,.trio svg{ display:block; width:100%; height:100%; object-fit:cover }
+.trio .photo{ grid-column:2; grid-row:1 / span 2; display:flex; flex-direction:column } .trio .photo .vue{ flex:1; min-height:0; aspect-ratio:auto; cursor:zoom-in }
+.trio figcaption b{ color:var(--accent); font-weight:500 }
+@media (max-width:900px){ .trio{ grid-template-columns:minmax(0,1fr) } .trio .photo{ grid-column:auto; grid-row:auto } .trio .photo .vue{ aspect-ratio:16/9 } }
 figcaption{ font-size:.92rem; color:var(--muted); padding-top:12px }
 section{ padding-block:clamp(64px,8vw,112px) }
 section.gris{ background:var(--bg-2); border-block:1px solid var(--line) }
@@ -299,6 +306,24 @@ footer.pied{ color:var(--muted); margin-top:clamp(64px,8vw,112px); font-size:.95
     <div class="carte"><div class="k">Mobilier</div><h3>Les meubles que vous choisissez</h3><p>Vos modèles préférés, issus des grandes enseignes, aux vraies dimensions.</p><ul><li>Canapés, lits, tables, luminaires</li><li>Cuisine et salle de bain équipées</li><li>Plusieurs ambiances pour une même pièce</li></ul></div>
     <div class="carte"><div class="k">Visite</div><h3>Entrer dans la maison</h3><p>De pièce en pièce, jusqu’à l’étage. Au doigt ou au clavier.</p><ul><li>Hauteur de regard réelle</li><li>Murs et portes respectés</li><li>Plan de repérage à l’écran</li></ul></div>
     <div class="carte"><div class="k">Modifications</div><h3>Changer couleurs et matières</h3><p>Comparez plusieurs versions avant de décider. Essayez avec le bouton Explorer, en haut.</p><ul><li>Teintes de façade et de volets</li><li>Sols et revêtements</li><li>Cloisons déplacées, pièces réunies</li></ul></div>
+  </div>
+</div></section>
+
+<section id="photo"><div class="wrap">
+  <div class="tete">
+    <div class="eyebrow">Du plan à la photo</div>
+    <h2>Du plan à la photo, pièce par pièce.</h2>
+    <p class="lead">Même pièce, même point de vue. Le rendu photo montre le bien fini, avant les travaux.</p>
+  </div>
+  <div class="trio">
+    <figure><div class="vue"><svg viewBox="50 72 416 260" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Plan : le salon"><image href="m/plan.svg" width="765" height="833"/></svg></div><figcaption><b>1 · Le plan</b> — le salon</figcaption></figure>
+    <figure><div class="vue"><img src="m/int_salon_3d.jpg" loading="lazy" alt="Maquette 3D : le salon"></div><figcaption><b>2 · La maquette 3D</b> — murs et meubles à l’échelle</figcaption></figure>
+    <figure class="photo"><a class="vue" href="m/int_salon_photo.jpg" target="_blank" rel="noopener" title="Ouvrir en grand"><img src="m/int_salon_photo.jpg" loading="lazy" alt="Rendu photoréaliste : le salon"></a><figcaption><b>3 · Le rendu photo</b> — image générée à partir de la maquette · cliquez pour l’ouvrir en grand</figcaption></figure>
+  </div>
+  <div class="trio">
+    <figure><div class="vue"><svg viewBox="322 316 448 280" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Plan : la cuisine et le séjour"><image href="m/plan.svg" width="765" height="833"/></svg></div><figcaption><b>1 · Le plan</b> — la cuisine et le séjour</figcaption></figure>
+    <figure><div class="vue"><img src="m/int_cuisine_3d.jpg" loading="lazy" alt="Maquette 3D : la cuisine et le séjour"></div><figcaption><b>2 · La maquette 3D</b> — murs et meubles à l’échelle</figcaption></figure>
+    <figure class="photo"><a class="vue" href="m/int_cuisine_photo.jpg" target="_blank" rel="noopener" title="Ouvrir en grand"><img src="m/int_cuisine_photo.jpg" loading="lazy" alt="Rendu photoréaliste : la cuisine et le séjour"></a><figcaption><b>3 · Le rendu photo</b> — image générée à partir de la maquette · cliquez pour l’ouvrir en grand</figcaption></figure>
   </div>
 </div></section>
 
